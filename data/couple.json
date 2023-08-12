@@ -1,0 +1,20 @@
+[
+    {
+      "_id": "1",
+      "img": "https://i.ibb.co/vDKcq75/couple1.jpg",
+      "name": "John & Jane",
+      "about_marriage": "John and Jane have been happily married for five wonderful years. They met in college and have built a life full of love, laughter, and shared adventures."
+    },
+    {
+      "_id": "2",
+      "img": "https://i.ibb.co/Y3nyp73/couple2.jpg",
+      "name": "Michael & Emily",
+      "about_marriage": "Michael and Emily are high school sweethearts who tied the knot after a decade of togetherness. Their marriage is a testament to the power of friendship, trust, and shared dreams."
+    },
+    {
+      "_id": "3",
+      "img": "https://i.ibb.co/JkPpkGn/couple3.jpg",
+      "name": "David & Alicia ",
+      "about_marriage": "David and Alicia's marriage is a fusion of cultures and traditions. Their journey is a vibrant blend of love, understanding, and the joy of raising a multicultural family."
+    }
+  ]
