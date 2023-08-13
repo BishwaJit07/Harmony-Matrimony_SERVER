@@ -36,6 +36,7 @@ async function run() {
 
     const usersCollection = client.db("SoulMate-Matrimony").collection("users");
     const coupleCollection = client.db("SoulMate-Matrimony").collection("CoupleData");
+    const blogsCollection = client.db("SoulMate-Matrimony").collection("blogs");
      
     
     
@@ -59,12 +60,27 @@ async function run() {
             return res.send(result);
           });
     
+          //Couples related api
     
      app.get("/allCouple", async (req, res) => {
             const result = await coupleCollection.find().toArray();
             return res.send(result);
           });
+
+          //blogs related api
+
+     app.get("/blogs", async (req, res) => {
+            const result = await blogsCollection.find().toArray();
+            return res.send(result);
+          });
     
+          app.post("/blogs", async (req, res) => {
+            const newBlogs = req.body;
+            console.log(newClass);
+            const result = await blogsCollection.insertOne(newBlogs);
+            return res.send(result);
+          });
+
     // Send a ping to confirm a successful connection
     await client.db("admin").command({ ping: 1 });
     console.log("Pinged your deployment. You successfully connected to MongoDB!");
