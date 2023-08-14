@@ -41,7 +41,7 @@ async function run() {
     
     
     //user get point
-     app.get("/users", async (req, res) => {
+     app.get("/allUser", async (req, res) => {
             const result = await usersCollection.find().toArray();
             return res.send(result);
           });
