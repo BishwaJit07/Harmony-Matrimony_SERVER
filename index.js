@@ -46,7 +46,7 @@ async function run() {
             return res.send(result);
           });
     
-    app.post("/users",  async (req, res) => {
+    app.post("/allUser",  async (req, res) => {
             const user = req.body;
             const query = { email: user.email };
       
