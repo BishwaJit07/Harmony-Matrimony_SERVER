@@ -1,6 +1,7 @@
 const express = require('express');
 const app = express();
 const cors = require("cors");
+const jwt = require('jsonwebtoken')
 require("dotenv").config();
 const port = process.env.PORT || 5000;
 
@@ -8,6 +9,26 @@ const port = process.env.PORT || 5000;
 app.use(cors());
 app.use(express.json());
 
+const verifyJwt = (req, res, next) => {
+  const authorization = req.headers.authorization;
+  if (!authorization) {
+    return res
+      .status(401)
+      .send({ error: true, message: "access unauthorized" });
+  }
+  //jwt token
+  const token = authorization.split(" ")[1];
+
+  jwt.verify(token, process.env.JwtAccess_Token, (err, decoded) => {
+    if (err) {
+      return res
+        .status(403)
+        .send({ error: true, message: "access unauthorized" });
+    }
+    req.decoded = decoded;
+    next();
+  });
+};
 
 // mongo db 
 
@@ -38,8 +59,37 @@ async function run() {
     const coupleCollection = client.db("SoulMate-Matrimony").collection("CoupleData");
     const blogsCollection = client.db("SoulMate-Matrimony").collection("blogs");
      
-    
-    
+    // JWt 
+    app.post("/jwt", (req, res) => {
+      const user = req.body;
+      const jwtToken = jwt.sign(user, process.env.ACCESS_TOKEN_SECRET, {
+        expiresIn: "24h",
+      });
+      res.send({ jwtToken });
+    });
+
+    // jwt user  verification
+    app.get('/allUser/admin/:email',verifyJwt, async(req,res)=>{
+      const email = req.params.email;
+
+      if(req.decoded.email!== email){
+        res.send({admin:false})
+      }
+
+      const query = {email:email}
+      const user = await usersCollection.findOne(query);
+      const result = {admin:user?.role==='admin'}
+      res.send(result)
+    })
+
+    app.get('/allUser/instructor/:email', verifyJwt, async(req,res)=>{
+      const email = req.params.email;
+      const query = {email:email}
+      const user = await usersCollection.findOne(query);
+      const result = {instructor:user?.role1==='instructor'}
+      res.send(result)
+    })
+
     //user get point
      app.get("/allUser", async (req, res) => {
             const result = await usersCollection.find().toArray();
@@ -67,6 +117,12 @@ async function run() {
             return res.send(result);
           });
 
+          app.post("/allCouple", async (req, res) => {
+            const newstory = req.body;
+            console.log(newstory);
+            const result = await coupleCollection.insertOne(newstory);
+            return res.send(result);
+          });
           //blogs related api
 
      app.get("/blogs", async (req, res) => {
