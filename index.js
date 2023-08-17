@@ -32,7 +32,7 @@ const verifyJwt = (req, res, next) => {
 
 // mongo db 
 
-const { MongoClient, ServerApiVersion } = require('mongodb');
+const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 const uri = `mongodb+srv://${process.env.DB_User}:${process.env.DB_Pass}@cluster0.pmqtpdf.mongodb.net/?retryWrites=true&w=majority`;
 
 // make a .env file and put this there - 
@@ -95,7 +95,14 @@ async function run() {
             const result = await usersCollection.find().toArray();
             return res.send(result);
           });
-    
+
+          app.get("/specificUser/:id", async (req, res) => {
+            const id= req.params.id;
+            const query = {_id: new ObjectId(id)}
+           const result = await usersCollection.findOne(query);
+           return res.send(result);
+         });
+
     app.post("/allUser",  async (req, res) => {
             const user = req.body;
             const query = { email: user.email };
@@ -123,6 +130,15 @@ async function run() {
             const result = await coupleCollection.insertOne(newstory);
             return res.send(result);
           });
+          app.get("/allCouple/:id", async (req, res) => {
+            const id= req.params.id;
+            const query = {_id: new ObjectId(id)}
+            const result = await coupleCollection.findOne(query);
+            res.send(result)
+          })
+         
+        
+
           //blogs related api
 
      app.get("/blogs", async (req, res) => {
@@ -132,10 +148,17 @@ async function run() {
     
           app.post("/blogs", async (req, res) => {
             const newBlogs = req.body;
-            console.log(newClass);
+            console.log(newBlogs);
             const result = await blogsCollection.insertOne(newBlogs);
             return res.send(result);
           });
+
+          app.get("/blogs/:id", async (req, res) => {
+            const id= req.params.id;
+            const query = {_id: new ObjectId(id)}
+            const result = await blogsCollection.findOne(query);
+            res.send(result)
+          })
 
     // Send a ping to confirm a successful connection
     await client.db("admin").command({ ping: 1 });
