@@ -58,7 +58,7 @@ async function run() {
     const usersCollection = client.db("SoulMate-Matrimony").collection("users");
     const coupleCollection = client.db("SoulMate-Matrimony").collection("CoupleData");
     const blogsCollection = client.db("SoulMate-Matrimony").collection("blogs");
-     
+    const contactCollection = client.db("SoulMate-Matrimony").collection("contacts");
     // JWt 
     app.post("/jwt", (req, res) => {
       const user = req.body;
@@ -136,6 +136,12 @@ async function run() {
             const result = await coupleCollection.findOne(query);
             res.send(result)
           })
+
+    app.post('/contact', async(req, res) => {
+      const contactData = req.body
+      const result = await contactCollection.insertOne(contactData)
+      res.send(result)
+    })
          
         
 
