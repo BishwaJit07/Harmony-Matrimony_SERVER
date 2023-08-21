@@ -147,7 +147,7 @@ async function run() {
     // get photography services data
     app.get('/service/photography', async(req, res) => {
       const query = { category: "photography" };
-      const result = await serviceCollection.find(query).toArray()
+      const result = await  serviceCollection.find(query).toArray()
       res.send(result)
     })
 
