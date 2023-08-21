@@ -1,134 +1,167 @@
 [
   {
-    "_id": "1",
     "name": "John Doe",
     "img": "https://i.ibb.co/fvSKMJL/jhon.jpg",
     "contact": {
-      "email": "john.doe@example.com",
-      "phone": "+1234567890"
+      
     },
     "job": {
       "position": "Software Engineer",
       "company": "TechCo"
     },
     "physical_attributes": {
-      "height": "5'11\" (180 cm)",
-      "weight": "176 lbs (80 kg)"
+      "height": "5'11",
+      "weight": "80 kg"
     },
+    "email": "john.doe@example.com",
+    "mobile": "+1234567890",
     "gender": "Male",
     "religion": "Agnostic",
     "country": "United States",
     "status": "Single",
-    "about": "I'm a passionate software engineer who loves creating innovative solutions to real-world problems. I enjoy hiking, reading, and experimenting with new technologies in my free time."
+    "about": "I'm a passionate software engineer who loves creating innovative solutions to real-world problems. I enjoy hiking, reading, and experimenting with new technologies in my free time.",
+    "age": 26
   },
   {
-    "_id": "2",
     "name": "Emily Smith",
     "img": "https://i.ibb.co/nPgBbMx/emily.jpg",
     "contact": {
-      "email": "emily.smith@example.com",
-      "phone": "+9876543210"
+      
     },
     "job": {
       "position": "Marketing Manager",
       "company": "Global Marketing Solutions"
     },
     "physical_attributes": {
-      "height": "5'6\" (167 cm)",
-      "weight": "132 lbs (60 kg)"
+      "height": "5'6",
+      "weight": "60 kg"
     },
+    "email": "emily.smith@example.com",
+    "mobile": "+9876543210",
     "gender": "Female",
     "religion": "Christian",
     "country": "Canada",
     "status": "Single",
-    "about": "I'm a creative marketer with a passion for storytelling. I love traveling, photography, and spending time with my family."
+    "about": "I'm a creative marketer with a passion for storytelling. I love traveling, photography, and spending time with my family.",
+    "age": 32
   },
   {
-    "_id": "3",
     "name": "Mohammed Ahmed",
     "img": "https://i.ibb.co/LnY8nxV/robert.jpg",
-    "contact": {
-      "email": "mohammed.ahmed@example.com",
-      "phone": "+1122334455"
-    },
     "job": {
       "position": "Financial Analyst",
       "company": "Investment Bank Group"
     },
     "physical_attributes": {
-      "height": "5'9\" (175 cm)",
-      "weight": "154 lbs (70 kg)"
+      "height": "5'9" ,
+      "weight": "70 kg"
     },
+    "email": "mohammed.ahmed@example.com",
+    "mobile": "+1122334455",
     "gender": "Male",
     "religion": "Muslim",
     "country": "United Arab Emirates",
     "status": "Single",
-    "about": "I have a strong interest in finance and enjoy analyzing market trends. My hobbies include playing soccer, reading about history, and exploring new cuisines."
+    "about": "I have a strong interest in finance and enjoy analyzing market trends. My hobbies include playing soccer, reading about history, and exploring new cuisines.",
+    "age": 55
   },
   {
-    "_id": "4",
     "name": "Sophie Johnson",
     "img": "https://i.ibb.co/XYTg82v/sophia.jpg",
-    "contact": {
-      "email": "sophie.johnson@example.com",
-      "phone": "+6655443322"
-    },
+    
     "job": {
       "position": "Graphic Designer",
       "company": "Creative Studio"
     },
     "physical_attributes": {
-      "height": "5'4\" (163 cm)",
-      "weight": "121 lbs (55 kg)"
+      "height": "5'4",
+      "weight": "55 kg"
     },
+    "email": "sophie.johnson@example.com",
+    "mobile": "+6655443322",
     "gender": "Female",
     "religion": "None",
     "country": "Australia",
     "status": "Single",
-    "about": "I'm a visual artist who loves bringing ideas to life through design. In my free time, I enjoy painting, hiking, and attending art exhibitions."
+    "about": "I'm a visual artist who loves bringing ideas to life through design. In my free time, I enjoy painting, hiking, and attending art exhibitions.",
+    "age": 40
   },
   {
-    "_id": "5",
     "name": "Michael Johnson",
     "img": "https://i.ibb.co/BZpW8yQ/michael.jpg",
-    "contact": {
-      "email": "michael.johnson@example.com",
-      "phone": "+1122334455"
-    },
     "job": {
       "position": "Sales Manager",
       "company": "SalesTech"
     },
     "physical_attributes": {
-      "height": "6'2\" (188 cm)",
-      "weight": "185 lbs (84 kg)"
+      "height": "6'2",
+      "weight": "84 kg"
     },
-    "gender": "Female",
+    "email": "michael.johnson@example.com",
+    "mobile": "+1122334455",
+    "gender": "Male",
     "religion": "Christian",
     "country": "United Kingdom",
     "status": "Married",
-    "about": "I'm a results-driven sales manager with a passion for building strong client relationships. In my free time, I enjoy playing guitar and exploring new travel destinations."
+    "about": "I'm a results-driven sales manager with a passion for building strong client relationships. In my free time, I enjoy playing guitar and exploring new travel destinations.",
+    "age": 29
   },
   {
-    "_id": "6",
     "name": "Maria Rodriguez",
     "img": "https://i.ibb.co/zmS4MLP/jane.jpg",
-    "contact": {
-      "email": "maria.rodriguez@example.com",
-      "phone": "+1234567890"
-    },
     "job": {
       "position": "Human Resources Specialist",
       "company": "PeopleConnect"
     },
     "physical_attributes": {
-      "height": "5'7\" (170 cm)",
-      "weight": "140 lbs (64 kg)"
+      "height": "5'7",
+      "weight": "64 kg"
     },
+    "email": "maria.rodriguez@example.com",
+    "mobile": "+1234567890",
     "gender": "Female",
     "religion": "Catholic",
     "country": "Spain",
     "status": "Single",
-    "about": "I'm passionate about fostering a positive work environment and helping employees thrive. Outside of work, I enjoy dancing, cooking, and volunteering for community projects."
+    "about": "I'm passionate about fostering a positive work environment and helping employees thrive. Outside of work, I enjoy dancing, cooking, and volunteering for community projects.",
+    "age": 61
+  },
+  {
+    "name": "Admin",
+    "email": "admin@gmail.com",
+    "status": "admin",
+    "img": "https://i.ibb.co/Wy8LyR3/4965791-50426.jpg"
+  },
+  {
+    "mobile": "123456789",
+    "email": "mama7@mami.com",
+    "status": "User",
+    "age": 9,
+    "profile": "Myself",
+    "marital_status": "Single",
+    "name": "Jack",
+    "gender": "Male",
+    "birth": "2014-01-02",
+    "religion": "Muslim",
+    "community": "English",
+    "country": "Bangladesh",
+    "state": "Dhaka",
+    "img": "https://i.ibb.co/mBvSxWw/istockphoto-1190043570-612x612.jpg"
+  },
+  {
+    "mobile": "77679297542",
+    "email": "bishwajitr21@gmail.com",
+    "status": "User",
+    "age": 23,
+    "profile": "",
+    "marital_status": "",
+    "name": "BISHWAJIT SHIL",
+    "gender": "Male",
+    "birth": "2000-08-10",
+    "religion": "Hindu",
+    "community": "Bengali",
+    "country": "Bangladesh",
+    "state": "chattogram",
+    "img": "https://i.ibb.co/wh2g55W/aquaman.jpg"
   }
 ]
