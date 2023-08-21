@@ -35,9 +35,11 @@ const uri = `mongodb+srv://${process.env.DB_User}:${process.env.DB_Pass}@cluster
 
 // make a .env file and put this there - 
 
+
+
 // DB_User = SoulMate-Matrimony
 // DB_Pass = LV2hgni1aq9w6d5H
-
+// ACCESS_TOKEN_SECRET = 85cb704d0594706c59a8ce4c369af0c8dc6740b0053052e47e20b33775fc78b2d6583a29f44bae285e03bf2e0a7fa81db861441961df8eb5cc5d0fd46028bb88
 
 // Create a MongoClient with a MongoClientOptions object to set the Stable API version
 const client = new MongoClient(uri, {
@@ -57,6 +59,9 @@ async function run() {
     const coupleCollection = client.db("SoulMate-Matrimony").collection("CoupleData");
     const blogsCollection = client.db("SoulMate-Matrimony").collection("blogs");
 
+    const contactCollection = client.db("SoulMate-Matrimony").collection("contacts");
+    const serviceCollection = client.db("SoulMate-Matrimony").collection("services");
+    
     // JWt 
     app.post("/jwt", (req, res) => {
       const user = req.body;
@@ -177,6 +182,7 @@ async function run() {
       const result = await blogsCollection.findOne(query);
       res.send(result)
     })
+
 
     // Send a ping to confirm a successful connection
     await client.db("admin").command({ ping: 1 });
