@@ -126,12 +126,20 @@ async function run() {
       res.send(result);
     })
 
-    // app.get('/userdata/:email', async (req, res) => {
-    //   const email = req.params.email;
-    //   const query = { email: email }
-    //   const result = await usersCollection.findOne(query);
-    //   res.send(result)
-    // })
+    app.get('/userInfo', verifyJWT, async (req, res) => {
+      const email = req.query.email;
+      console.log(email)
+      if (!email) {
+        res.send([]);
+      }
+      const decodedEmail = req.decoded.email;
+      if (email !== decodedEmail) {
+        return res.status(403).send({ error: true, message: 'invalid email' })
+      }
+      const query = { email: email }
+      const result = await usersCollection.findOne(query);
+      res.send(result) 
+    })
 
     //user get point
     app.get("/allUser", async (req, res) => {
@@ -151,7 +159,6 @@ async function run() {
       const query = { email: user.email };
 
       const excitingUser = await usersCollection.findOne(query);
-      console.log("existing User", excitingUser);
 
       if (excitingUser) {
         return res.send({ message: "user exists" });
