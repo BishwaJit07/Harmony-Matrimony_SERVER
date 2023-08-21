@@ -61,6 +61,7 @@ async function run() {
     const coupleCollection = client.db("SoulMate-Matrimony").collection("CoupleData");
     const blogsCollection = client.db("SoulMate-Matrimony").collection("blogs");
     const contactCollection = client.db("SoulMate-Matrimony").collection("contacts");
+    const serviceCollection = client.db("SoulMate-Matrimony").collection("services");
     // JWt 
     app.post("/jwt", (req, res) => {
       const user = req.body;
@@ -144,8 +145,27 @@ async function run() {
       const result = await contactCollection.insertOne(contactData)
       res.send(result)
     })
-         
-        
+
+    // get photography services data
+    app.get('/service/photography', async(req, res) => {
+      const query = { category: "photography" };
+      const result = await  serviceCollection.find(query).toArray()
+      res.send(result)
+    })
+
+    app.get("/service/hotel", async (req, res) => {
+      const query = { category: "hotel" };
+      const result = await serviceCollection.find(query).toArray();
+      res.send(result);
+    });
+
+    app.get("/service/catering", async (req, res) => {
+      const query = { category: "catering" };
+      const result = await serviceCollection.find(query).toArray();
+      res.send(result);
+    });
+
+    
 
           //blogs related api
 
