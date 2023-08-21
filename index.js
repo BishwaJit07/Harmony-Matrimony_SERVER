@@ -86,7 +86,7 @@ async function run() {
       const email = req.params.email;
       const query = {email:email}
       const user = await usersCollection.findOne(query);
-      const result = {instructor:user?.role1==='instructor'}
+      const result = {instructor:user?.role==='instructor'}
       res.send(result)
     })
 
