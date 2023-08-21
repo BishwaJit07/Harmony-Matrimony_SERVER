@@ -144,16 +144,26 @@ async function run() {
       res.send(result)
     })
 
-    // get services data
+    // get photography services data
     app.get('/service/photography', async(req, res) => {
       const query = { category: "photography" };
       const result = await serviceCollection.find(query).toArray()
       res.send(result)
     })
 
+    app.get("/service/hotel", async (req, res) => {
+      const query = { category: "hotel" };
+      const result = await serviceCollection.find(query).toArray();
+      res.send(result);
+    });
+
+    app.get("/service/catering", async (req, res) => {
+      const query = { category: "catering" };
+      const result = await serviceCollection.find(query).toArray();
+      res.send(result);
+    });
+
     
-         
-        
 
           //blogs related api
 
