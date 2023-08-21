@@ -13,26 +13,26 @@ const verifyJwt = (req, res, next) => {
   const authorization = req.headers.authorization;
   if (!authorization) {
     return res
-      .status(401)
-      .send({ error: true, message: "access unauthorized" });
+      .status(401).send({ error: true, message: "access unauthorized" });
   }
   //jwt token
   const token = authorization.split(" ")[1];
 
-  jwt.verify(token, process.env.JwtAccess_Token, (err, decoded) => {
+  jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (err, decoded) => {
     if (err) {
-      return res
-        .status(403)
-        .send({ error: true, message: "access unauthorized" });
+      return res.status(401).send({ error: true, message: "access unauthorized" });
     }
     req.decoded = decoded;
     next();
   });
 };
 
+
+
+
 // mongo db 
 
-const { MongoClient, ServerApiVersion } = require('mongodb');
+const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 const uri = `mongodb+srv://${process.env.DB_User}:${process.env.DB_Pass}@cluster0.pmqtpdf.mongodb.net/?retryWrites=true&w=majority`;
 
 // make a .env file and put this there - 
@@ -58,84 +58,131 @@ async function run() {
     const usersCollection = client.db("SoulMate-Matrimony").collection("users");
     const coupleCollection = client.db("SoulMate-Matrimony").collection("CoupleData");
     const blogsCollection = client.db("SoulMate-Matrimony").collection("blogs");
-     
+
     // JWt 
     app.post("/jwt", (req, res) => {
       const user = req.body;
-      const jwtToken = jwt.sign(user, process.env.ACCESS_TOKEN_SECRET, {
+      const token = jwt.sign(user, process.env.ACCESS_TOKEN_SECRET, {
         expiresIn: "24h",
       });
-      res.send({ jwtToken });
+      res.send({ token });
     });
 
-    // jwt user  verification
-    app.get('/allUser/admin/:email',verifyJwt, async(req,res)=>{
-      const email = req.params.email;
 
-      if(req.decoded.email!== email){
-        res.send({admin:false})
+    const verifyAdmin = async (req, res, next) => {
+      const email = req.decoded.email;
+      const query = { email: email }
+      const user = await usersCollection.findOne(query);
+      if (user?.role !== 'admin') {
+        return res.status(403).send({ error: true, message: 'forbidden message' });
       }
+      next();
+    }
 
-      const query = {email:email}
+    const verifyInstructor = async (req, res, next) => {
+      const email = req.decoded.email;
+      const query = { email: email }
       const user = await usersCollection.findOne(query);
-      const result = {admin:user?.role==='admin'}
-      res.send(result)
-    })
+      if (user?.role !== 'instructor') {
+        return res.status(403).send({ error: true, message: 'forbidden message' });
+      }
+      next();
+    }
 
-    app.get('/allUser/instructor/:email', verifyJwt, async(req,res)=>{
-      const email = req.params.email;
-      const query = {email:email}
-      const user = await usersCollection.findOne(query);
-      const result = {instructor:user?.role1==='instructor'}
-      res.send(result)
-    })
+
+  // check admin
+  app.get('/users/admin/:email', verifyJwt, async (req, res) => {
+    const email = req.params.email;
+
+    if (req.decoded.email !== email) {
+      res.send({ admin: false })
+    }
+
+    const query = { email: email }
+    const user = await usersCollection.findOne(query);
+    const result = { admin: user?.role === 'admin' }
+    res.send(result);
+  })
+   
+
+
+  // check Instructor
+  app.get('/users/instructor/:email', verifyJwt, async (req, res) => {
+    const email = req.params.email;
+
+    if (req.decoded.email !== email) {
+      res.send({ instructor : false })
+    }
+
+    const query = { email: email }
+    const user = await usersCollection.findOne(query);
+    const result = { admin: user?.role === 'instructor' }
+    res.send(result);
+  })
+
+
+    // app.get('/userdata/:email', async (req, res) => {
+    //   const email = req.params.email;
+    //   const query = { email: email }
+    //   const result = await usersCollection.findOne(query);
+    //   res.send(result)
+    // })
 
     //user get point
-     app.get("/allUser", async (req, res) => {
-            const result = await usersCollection.find().toArray();
-            return res.send(result);
-          });
-    
-    app.post("/allUser",  async (req, res) => {
-            const user = req.body;
-            const query = { email: user.email };
-      
-            const excitingUser = await usersCollection.findOne(query);
-            console.log("existing User", excitingUser);
-      
-            if (excitingUser) {
-              return res.send({ message: "user exists" });
-            }
-            const result = await usersCollection.insertOne(user);
-            return res.send(result);
-          });
-    
-          //Couples related api
-    
-     app.get("/allCouple", async (req, res) => {
-            const result = await coupleCollection.find().toArray();
-            return res.send(result);
-          });
+    app.get("/allUser", async (req, res) => {
+      const result = await usersCollection.find().toArray();
+      return res.send(result);
+    });
 
-          app.post("/allCouple", async (req, res) => {
-            const newstory = req.body;
-            console.log(newstory);
-            const result = await coupleCollection.insertOne(newstory);
-            return res.send(result);
-          });
-          //blogs related api
 
-     app.get("/blogs", async (req, res) => {
-            const result = await blogsCollection.find().toArray();
-            return res.send(result);
-          });
-    
-          app.post("/blogs", async (req, res) => {
-            const newBlogs = req.body;
-            console.log(newClass);
-            const result = await blogsCollection.insertOne(newBlogs);
-            return res.send(result);
-          });
+    app.post("/allUser", async (req, res) => {
+      const user = req.body;
+      const query = { email: user.email };
+
+      const excitingUser = await usersCollection.findOne(query);
+      console.log("existing User", excitingUser);
+
+      if (excitingUser) {
+        return res.send({ message: "user exists" });
+      }
+      const result = await usersCollection.insertOne(user);
+      return res.send(result);
+    });
+
+    //find a specific user
+    app.get("/specificUser/:id", async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) }
+      const result = await usersCollection.findOne(query);
+      return res.send(result);
+    });
+
+    //Couples related api
+
+    app.get("/allCouple", async (req, res) => {
+      const result = await coupleCollection.find().toArray();
+      return res.send(result);
+    });
+
+    app.post("/allCouple", async (req, res) => {
+      const newstory = req.body;
+      console.log(newstory);
+      const result = await coupleCollection.insertOne(newstory);
+      return res.send(result);
+    });
+    //blogs related api
+
+    app.get("/blogs", async (req, res) => {
+      const result = await blogsCollection.find().toArray();
+      return res.send(result);
+    });
+
+    app.post("/blogs", async (req, res) => {
+      const newBlogs = req.body;
+      console.log(newClass);
+      const result = await blogsCollection.insertOne(newBlogs);
+      return res.send(result);
+    });
 
     // Send a ping to confirm a successful connection
     await client.db("admin").command({ ping: 1 });
@@ -144,7 +191,7 @@ async function run() {
   catch (error) {
     console.error("MongoDB connection error:", error);
   }
-   finally {
+  finally {
     // Ensures that the client will close when you finish/error
     // await client.close();
   }
