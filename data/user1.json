@@ -1,0 +1,185 @@
+[
+    {
+        "name": "John Doe",
+        "img": "https://i.ibb.co/fvSKMJL/jhon.jpg",
+        "contact": {},
+        "job": {
+            "position": "Software Engineer",
+            "company": "TechCo"
+        },
+        "physical_attributes": {
+            "height": "5'11",
+            "weight": "80 kg"
+        },
+        "email": "john.doe@example.com",
+        "mobile": "+1234567890",
+        "gender": "Male",
+        "religion": "Agnostic",
+        "country": "United States",
+        "about": "I'm a passionate software engineer who loves creating innovative solutions to real-world problems. I enjoy hiking, reading, and experimenting with new technologies in my free time.",
+        "age": 26,
+        "status": "Single",
+        "role ": "user"
+    },
+    {
+        "name": "Emily Smith",
+        "img": "https://i.ibb.co/nPgBbMx/emily.jpg",
+        "contact": {},
+        "job": {
+            "position": "Marketing Manager",
+            "company": "Global Marketing Solutions"
+        },
+        "physical_attributes": {
+            "height": "5'6",
+            "weight": "60 kg"
+        },
+        "email": "emily.smith@example.com",
+        "mobile": "+9876543210",
+        "gender": "Female",
+        "religion": "Christian",
+        "country": "Canada",
+        "status": "Single",
+        "about": "I'm a creative marketer with a passion for storytelling. I love traveling, photography, and spending time with my family.",
+        "age": 32,
+        "role": "user"
+    },
+    {
+        "name": "Mohammed Ahmed",
+        "img": "https://i.ibb.co/LnY8nxV/robert.jpg",
+        "job": {
+            "position": "Financial Analyst",
+            "company": "Investment Bank Group"
+        },
+        "physical_attributes": {
+            "height": "5'9",
+            "weight": "70 kg"
+        },
+        "email": "mohammed.ahmed@example.com",
+        "mobile": "+1122334455",
+        "gender": "Male",
+        "religion": "Muslim",
+        "country": "United Arab Emirates",
+        "status": "Single",
+        "about": "I have a strong interest in finance and enjoy analyzing market trends. My hobbies include playing soccer, reading about history, and exploring new cuisines.",
+        "age": 55,
+        "role": "user"
+    },
+    {
+        "name": "Sophie Johnson",
+        "img": "https://i.ibb.co/XYTg82v/sophia.jpg",
+        "job": {
+            "position": "Graphic Designer",
+            "company": "Creative Studio"
+        },
+        "physical_attributes": {
+            "height": "5'4",
+            "weight": "55 kg"
+        },
+        "email": "sophie.johnson@example.com",
+        "mobile": "+6655443322",
+        "gender": "Female",
+        "religion": "None",
+        "country": "Australia",
+        "status": "Single",
+        "about": "I'm a visual artist who loves bringing ideas to life through design. In my free time, I enjoy painting, hiking, and attending art exhibitions.",
+        "age": 40,
+        "role": "user"
+    },
+    {
+        "name": "Michael Johnson",
+        "img": "https://i.ibb.co/BZpW8yQ/michael.jpg",
+        "job": {
+            "position": "Sales Manager",
+            "company": "SalesTech"
+        },
+        "physical_attributes": {
+            "height": "6'2",
+            "weight": "84 kg"
+        },
+        "email": "michael.johnson@example.com",
+        "mobile": "+1122334455",
+        "gender": "Male",
+        "religion": "Christian",
+        "country": "United Kingdom",
+        "status": "Married",
+        "about": "I'm a results-driven sales manager with a passion for building strong client relationships. In my free time, I enjoy playing guitar and exploring new travel destinations.",
+        "age": 29,
+        "role": "user"
+    },
+    {
+        "name": "Maria Rodriguez",
+        "img": "https://i.ibb.co/zmS4MLP/jane.jpg",
+        "job": {
+            "position": "Human Resources Specialist",
+            "company": "PeopleConnect"
+        },
+        "physical_attributes": {
+            "height": "5'7",
+            "weight": "64 kg"
+        },
+        "email": "maria.rodriguez@example.com",
+        "mobile": "+1234567890",
+        "gender": "Female",
+        "religion": "Catholic",
+        "country": "Spain",
+        "status": "Single",
+        "about": "I'm passionate about fostering a positive work environment and helping employees thrive. Outside of work, I enjoy dancing, cooking, and volunteering for community projects.",
+        "age": 61,
+        "role": "user"
+    },
+    {
+        "name": "Admin",
+        "email": "admin@gmail.com",
+        "img": "https://i.ibb.co/Wy8LyR3/4965791-50426.jpg",
+        "role": "admin"
+    },
+    {
+        "mobile": "123456789",
+        "email": "mama7@mami.com",
+        "age": 9,
+        "profile": "Myself",
+        "name": "Jack",
+        "gender": "Male",
+        "birth": "2014-01-02",
+        "religion": "Muslim",
+        "community": "English",
+        "country": "Bangladesh",
+        "state": "Dhaka",
+        "img": "https://i.ibb.co/mBvSxWw/istockphoto-1190043570-612x612.jpg",
+        "role": "user",
+        "status": "Single"
+    },
+    {
+        "mobile": "001122334455",
+        "email": "my@email.com",
+        "img": "https://i.ibb.co/4fc4DXZ/Screenshot-from-2023-08-19-21-16-06.png",
+        "status": "User",
+        "age": 24,
+        "profile": "Myself",
+        "marital_status": "Single",
+        "name": "Peter Parker",
+        "gender": "Male",
+        "birth": "1999-02-14",
+        "religion": "Hindu",
+        "community": "Bengali",
+        "country": "Canada",
+        "state": "The state"
+    },
+    {
+        "mobile": "0171867",
+        "email": "naime@gmail.com",
+        "img": "https://i.ibb.co/8jpLknC/1668029477683.jpg",
+        "status": "User",
+        "age": 25,
+        "profile": "Myself",
+        "marital_status": "Single",
+        "name": "naime hasan",
+        "gender": "Male",
+        "birth": "1998-01-01",
+        "religion": "Muslim",
+        "community": "Bengali",
+        "country": "Bangladesh",
+        "state": "Khulna",
+        "role": "instructor"
+    }
+]
