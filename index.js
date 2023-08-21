@@ -66,6 +66,9 @@ async function run() {
     const serviceCollection = client
       .db("SoulMate-Matrimony")
       .collection("services");
+    const statusCollection = client
+      .db("SoulMate-Matrimony")
+      .collection("statusPost");
 
     // JWt
     app.post("/jwt", (req, res) => {
