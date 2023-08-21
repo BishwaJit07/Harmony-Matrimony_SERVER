@@ -60,6 +60,11 @@ async function run() {
       .db("SoulMate-Matrimony")
       .collection("CoupleData");
     const blogsCollection = client.db("SoulMate-Matrimony").collection("blogs");
+
+    const bookedServiceCollection = client.db("SoulMate-Matrimony").collection("bookedService");
+
+    // JWt 
+
     const contactCollection = client
       .db("SoulMate-Matrimony")
       .collection("contacts");
@@ -220,6 +225,21 @@ async function run() {
       const result = await serviceCollection.find(query).toArray();
       res.send(result);
     });
+
+  // get single service data
+  app.get("/service/:id", async (req, res) => {
+    const id = req.params.id;
+    const query = { _id: new ObjectId(id) };
+    const result = await serviceCollection.findOne(query);
+    res.send(result);
+  });
+
+  // post user booked service data
+  app.post("/bookedService", async (req, res) => {
+    const serviceData = req.body;
+    const result = await bookedServiceCollection.insertOne(serviceData);
+    res.send(result);
+  });
 
     //blogs related api
 
