@@ -62,6 +62,7 @@ async function run() {
     const blogsCollection = client.db("SoulMate-Matrimony").collection("blogs");
     const contactCollection = client.db("SoulMate-Matrimony").collection("contacts");
     const serviceCollection = client.db("SoulMate-Matrimony").collection("services");
+    const bookedServiceCollection = client.db("SoulMate-Matrimony").collection("bookedService");
 
     // JWt 
     app.post("/jwt", (req, res) => {
@@ -202,6 +203,21 @@ async function run() {
   app.get("/service/catering", async (req, res) => {
     const query = { category: "catering" };
     const result = await serviceCollection.find(query).toArray();
+    res.send(result);
+  });
+
+  // get single service data
+  app.get("/service/:id", async (req, res) => {
+    const id = req.params.id;
+    const query = { _id: new ObjectId(id) };
+    const result = await serviceCollection.findOne(query);
+    res.send(result);
+  });
+
+  // post user booked service data
+  app.post("/bookedService", async (req, res) => {
+    const serviceData = req.body;
+    const result = await bookedServiceCollection.insertOne(serviceData);
     res.send(result);
   });
 
