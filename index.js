@@ -241,6 +241,20 @@ async function run() {
     res.send(result);
   });
 
+  // post service data
+  app.post("/service", async (req, res) => {
+    const serviceData = req.body;
+    const result = await serviceCollection.insertOne(serviceData);
+    res.send(result);
+  });
+
+  app.get("/singleBookedService/:email", async (req, res) => {
+    const email = req.params.email;
+    const query = { email: email};
+    const result = await bookedServiceCollection.find(query).toArray();
+    res.send(result);
+  });
+
     //blogs related api
 
     app.get("/blogs", async (req, res) => {
