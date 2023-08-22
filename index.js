@@ -61,9 +61,11 @@ async function run() {
       .collection("CoupleData");
     const blogsCollection = client.db("SoulMate-Matrimony").collection("blogs");
 
-    const bookedServiceCollection = client.db("SoulMate-Matrimony").collection("bookedService");
+    const bookedServiceCollection = client
+      .db("SoulMate-Matrimony")
+      .collection("bookedService");
 
-    // JWt 
+    // JWt
 
     const contactCollection = client
       .db("SoulMate-Matrimony")
@@ -140,20 +142,20 @@ async function run() {
       res.send(result);
     });
 
-    app.get('/userInfo', verifyJWT, async (req, res) => {
+    app.get("/userInfo", verifyJWT, async (req, res) => {
       const email = req.query.email;
-      console.log(email)
+      console.log(email);
       if (!email) {
         res.send([]);
       }
       const decodedEmail = req.decoded.email;
       if (email !== decodedEmail) {
-        return res.status(403).send({ error: true, message: 'invalid email' })
+        return res.status(403).send({ error: true, message: "invalid email" });
       }
-      const query = { email: email }
+      const query = { email: email };
       const result = await usersCollection.findOne(query);
-      res.send(result) 
-    })
+      res.send(result);
+    });
 
     //user get point
     app.get("/allUser", async (req, res) => {
@@ -226,18 +228,32 @@ async function run() {
       res.send(result);
     });
 
-  // get single service data
-  app.get("/service/:id", async (req, res) => {
-    const id = req.params.id;
-    const query = { _id: new ObjectId(id) };
-    const result = await serviceCollection.findOne(query);
+    // get single service data
+    app.get("/service/:id", async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) };
+      const result = await serviceCollection.findOne(query);
+      res.send(result);
+    });
+
+    // post user booked service data
+    app.post("/bookedService", async (req, res) => {
+      const serviceData = req.body;
+      const result = await bookedServiceCollection.insertOne(serviceData);
+      res.send(result);
+    });
+
+  // post service data
+  app.post("/service", async (req, res) => {
+    const serviceData = req.body;
+    const result = await serviceCollection.insertOne(serviceData);
     res.send(result);
   });
 
-  // post user booked service data
-  app.post("/bookedService", async (req, res) => {
-    const serviceData = req.body;
-    const result = await bookedServiceCollection.insertOne(serviceData);
+  app.get("/singleBookedService/:email", async (req, res) => {
+    const email = req.params.email;
+    const query = { email: email};
+    const result = await bookedServiceCollection.find(query).toArray();
     res.send(result);
   });
 
@@ -248,7 +264,7 @@ async function run() {
       return res.send(result);
     });
 
-    app.post("/blogs", async (req, res) => {
+    app.post("/blogs/post", async (req, res) => {
       const newBlogs = req.body;
       console.log(newBlogs);
       const result = await blogsCollection.insertOne(newBlogs);
@@ -259,6 +275,18 @@ async function run() {
       const id = req.params.id;
       const query = { _id: new ObjectId(id) };
       const result = await blogsCollection.findOne(query);
+      res.send(result);
+    });
+
+    app.patch("/blogs/:id", async (req, res) => {
+      const id = req.params.id;
+      const filter = { _id: new ObjectId(id) };
+      const updateDoc = {
+        $set: {
+          react: react + 1,
+        },
+      };
+      const result = await blogsCollection.updateOne(filter, updateDoc);
       res.send(result);
     });
 
