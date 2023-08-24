@@ -5,6 +5,7 @@ const cors = require("cors");
 const jwt = require("jsonwebtoken");
 require("dotenv").config();
 const port = process.env.PORT || 5000;
+const stripe = require("stripe")(process.env.PAYMENT_KEY);
 
 // middleware
 app.use(cors());
@@ -76,6 +77,9 @@ async function run() {
       .db("SoulMate-Matrimony")
       .collection("order");
 
+      // payment history collection
+    const paymentHistoryCollection = client.db("SoulMate-Matrimony").collection("paymentHistory");
+
     // JWt
 
     const contactCollection = client
@@ -96,6 +100,62 @@ async function run() {
       });
       res.send({ token });
     });
+
+    // stripe payment
+    app.post('/stripe-payment', async(req, res) => {
+      const {price} = req.body
+      const amount = price*100
+      console.log(price, amount)
+
+      try{
+        const paymentIntent = await stripe.paymentIntent.create({
+          amount: amount,
+          currency: "usd",
+          payment_method_types: ["card"]
+        });
+
+        res.status(200).json({
+          clientSecret: paymentIntent.client_secret,
+        })
+      }
+      catch (error){
+        console.log("Error creating payment intent:", error.message)
+        res.status(500).json({ error: "Failed to create payment intent" });
+      }
+      
+    })
+
+    app.post("/create-payment-intent", async (req, res) => {
+      const { price } = req.body;
+      const amount = price * 100;
+
+      // console.log(price, amount);
+      // res.send({
+      //   clientSecret: paymentIntent.client_secret,
+      // });
+      try {
+        const paymentIntent = await stripe.paymentIntents.create({
+          amount: amount,
+          currency: "usd",
+          payment_method_types: ["card"],
+        });
+
+        res.status(200).json({
+          clientSecret: paymentIntent.client_secret,
+        });
+      } catch (error) {
+        console.error("Error creating payment intent:", error.message);
+        res.status(500).json({ error: "Failed to create payment intent" });
+      }
+    });
+
+    // post stripe payment in database
+    app.post('/save-payments', async(req, res) => {
+      const payment = req.body
+      console.log(payment)
+      const result = await paymentHistoryCollection.insertOne(payment)
+      res.send(result)
+    })
 
     // admin middleware
     const verifyAdmin = async (req, res, next) => {
