@@ -101,6 +101,8 @@ async function run() {
       res.send({ token });
     });
 
+    // PAYMENT_KEY=sk_test_51Ni8a5GFYl3GiivUgPzTNfNymFHldn7Wbmsgin0vFLUwo1VpXbjHO7DwTod7w77vCEy3HLyj3Mc09MfuN5ereJRZ00AGjsKM6l
+    
     // stripe payment
     app.post('/stripe-payment', async(req, res) => {
       const {price} = req.body
@@ -416,8 +418,8 @@ async function run() {
         total_amount: order.price,
         currency: "BDT",
         tran_id: train_id,
-        success_url: `http://localhost:5000/payment/success/${train_id}`,
-        fail_url: `http://localhost:5000/payment/fail/${train_id}`,
+        success_url: `https://soulmates-server-two.vercel.app/payment/success/${train_id}`,
+        fail_url: `https://soulmates-server-two.vercel.app/payment/fail/${train_id}`,
         cancel_url: "http://localhost:3030/cancel", //not Important
         ipn_url: "http://localhost:3030/ipn",//not Important
         shipping_method: "Courier",
@@ -467,14 +469,14 @@ async function run() {
           }
         })
         if(result.modifiedCount >0){
-          res.redirect(`http://localhost:5173/payment/success/${req.params.tranId}`)
+          res.redirect(`https://soulmates-server-two.vercel.app/payment/success/${req.params.tranId}`)
         }
 
       });
       app.post('/payment/fail/:tranId',async(req,res)=>{
         const result=await orderCollection.deleteOne({transaction:req.params.tranId});
         if(result.deletedCount){
-          res.redirect(`http://localhost:5173/payment/fail/${req.params.tranId}`)
+          res.redirect(`https://soulmates-server-two.vercel.app/payment/fail/${req.params.tranId}`)
         }
       })
     });
