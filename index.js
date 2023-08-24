@@ -1,5 +1,6 @@
 const express = require("express");
 const app = express();
+const SSLCommerzPayment = require("sslcommerz-lts");
 const cors = require("cors");
 const jwt = require("jsonwebtoken");
 require("dotenv").config();
@@ -40,7 +41,8 @@ const uri = `mongodb+srv://${process.env.DB_User}:${process.env.DB_Pass}@cluster
 // DB_User = SoulMate-Matrimony
 // DB_Pass = LV2hgni1aq9w6d5H
 // ACCESS_TOKEN_SECRET = 85cb704d0594706c59a8ce4c369af0c8dc6740b0053052e47e20b33775fc78b2d6583a29f44bae285e03bf2e0a7fa81db861441961df8eb5cc5d0fd46028bb88
-
+// SSLID=soulm64e6111916384
+// SSLPASS=soulm64e6111916384@ssl
 // Create a MongoClient with a MongoClientOptions object to set the Stable API version
 const client = new MongoClient(uri, {
   serverApi: {
@@ -49,6 +51,12 @@ const client = new MongoClient(uri, {
     deprecationErrors: true,
   },
 });
+
+const store_id = process.env.SSLID;
+// soulm64e6111916384
+const store_passwd = process.env.SSLPASS;
+// soulm64e6111916384@ssl
+const is_live = false; //true for live, false for sandbox
 
 async function run() {
   try {
@@ -64,6 +72,9 @@ async function run() {
     const bookedServiceCollection = client
       .db("SoulMate-Matrimony")
       .collection("bookedService");
+    const orderCollection = client
+      .db("SoulMate-Matrimony")
+      .collection("order");
 
     // JWt
 
@@ -312,6 +323,76 @@ async function run() {
       const query = { _id: new ObjectId(id) };
       const status = await statusCollection.deleteOne(query);
       res.send(status);
+    });
+    // SslCommerz payment api
+    app.post("/order", async (req, res) => {
+      const order = req.body;
+      const train_id = new ObjectId().toString();
+      const data = {
+        total_amount: order.price,
+        currency: "BDT",
+        tran_id: train_id,
+        success_url: `http://localhost:5000/payment/success/${train_id}`,
+        fail_url: `http://localhost:5000/payment/fail/${train_id}`,
+        cancel_url: "http://localhost:3030/cancel", //not Important
+        ipn_url: "http://localhost:3030/ipn",//not Important
+        shipping_method: "Courier",
+        product_name: "Computer.",
+        product_category: "Electronic",
+        product_profile: "general",
+        cus_name: order.name,
+        cus_email: order.name,
+        cus_add1: order.location,
+        cus_add2: order.location,
+        cus_city: order.location,
+        cus_state: order.location,
+        cus_postcode: order.post,
+        cus_country: "Bangladesh",
+        cus_phone: order.phone,
+        cus_fax: "01711111111",
+        ship_name: "Customer Name",
+        ship_add1: "Dhaka",
+        ship_add2: "Dhaka",
+        ship_city: "Dhaka",
+        ship_state: "Dhaka",
+        ship_postcode: order.post,
+        ship_country: "Bangladesh",
+      };
+      console.log(data);
+      const sslcz = new SSLCommerzPayment(store_id, store_passwd, is_live);
+      sslcz.init(data).then((apiResponse) => {
+        // Redirect the user to payment gateway
+        let GatewayPageURL = apiResponse.GatewayPageURL;
+        res.send({ url: GatewayPageURL });
+
+        const finalOrder = {
+          order,
+          paidStatus: false,
+          transaction: train_id,
+        };
+        const result=orderCollection.insertOne(finalOrder)
+        
+        console.log("Redirecting to: ", GatewayPageURL);
+      });
+
+      app.post("/payment/success/:tranId", async (req, res) => {
+        console.log(req.params.tranId);
+        const result=await orderCollection.updateOne({transaction:req.params.tranId},{
+          $set:{
+            paidStatus:true
+          }
+        })
+        if(result.modifiedCount >0){
+          res.redirect(`http://localhost:5173/payment/success/${req.params.tranId}`)
+        }
+
+      });
+      app.post('/payment/fail/:tranId',async(req,res)=>{
+        const result=await orderCollection.deleteOne({transaction:req.params.tranId});
+        if(result.deletedCount){
+          res.redirect(`http://localhost:5173/payment/fail/${req.params.tranId}`)
+        }
+      })
     });
 
     //if any issue comment this line.
