@@ -264,7 +264,7 @@ async function run() {
       return res.send(result);
     });
 
-    app.post("/blogs/post", async (req, res) => {
+    app.post("/blogs", async (req, res) => {
       const newBlogs = req.body;
       console.log(newBlogs);
       const result = await blogsCollection.insertOne(newBlogs);
@@ -287,6 +287,14 @@ async function run() {
         },
       };
       const result = await blogsCollection.updateOne(filter, updateDoc);
+      res.send(result);
+    });
+
+    app.get("/blogsDetails/:id", async (req, res) => {
+      const id = req.params.id;
+      console.log(id);
+      const query = { _id: new ObjectId(id) };
+      const result = await blogsCollection.findOne(query);
       res.send(result);
     });
 
