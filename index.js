@@ -282,12 +282,28 @@ async function run() {
       const id = req.params.id;
       const filter = { _id: new ObjectId(id) };
       const updateDoc = {
-        $set: {
-          react: react + 1,
+        $inc: {
+          react: 1,
         },
       };
       const result = await blogsCollection.updateOne(filter, updateDoc);
       res.send(result);
+    });
+
+    app.get("/blogs/type/:type", async (req, res) => {
+      const type = req.params.type;
+      const filter = { type: type };
+      const result = await blogsCollection.find(filter).toArray();
+      res.send(result);
+    });
+
+    app.get("/popularBlog", async (req, res) => {
+      const query = {};
+      const options = {
+        sort: { react: -1 },
+      };
+      const result = await blogsCollection.find(query, options).toArray();
+      return res.send(result);
     });
 
     //user status post
