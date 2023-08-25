@@ -65,7 +65,6 @@ async function run() {
     const blogsCollection = client.db("SoulMate-Matrimony").collection("blogs");
     const userVerification = client.db("SoulMate-Matrimony").collection("userVerification");  
     const bookedServiceCollection = client.db("SoulMate-Matrimony").collection("bookedService");
-       // payment history collection
     const paymentHistoryCollection = client.db("SoulMate-Matrimony").collection("paymentHistory");
 
 
