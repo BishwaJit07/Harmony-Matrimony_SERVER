@@ -1,10 +1,11 @@
 const express = require("express");
-const app = express();
 const SSLCommerzPayment = require("sslcommerz-lts");
 const cors = require("cors");
-const jwt = require("jsonwebtoken");
+const app = express();
 require("dotenv").config();
+const jwt = require("jsonwebtoken");
 const port = process.env.PORT || 5000;
+const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 const stripe = require("stripe")(process.env.PAYMENT_KEY);
 
 // middleware
@@ -14,18 +15,14 @@ app.use(express.json());
 const verifyJWT = (req, res, next) => {
   const authorization = req.headers.authorization;
   if (!authorization) {
-    return res
-      .status(401)
-      .send({ error: true, message: "unauthorized access" });
+    return res.status(401).send({ error: true, message: "unauthorized access" });
   }
   // bearer token
   const token = authorization.split(" ")[1];
 
   jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (err, decoded) => {
     if (err) {
-      return res
-        .status(401)
-        .send({ error: true, message: "unauthorized access" });
+      return res.status(401).send({ error: true, message: "unauthorized access" });
     }
     req.decoded = decoded;
     next();
@@ -34,7 +31,6 @@ const verifyJWT = (req, res, next) => {
 
 // mongo db
 
-const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 const uri = `mongodb+srv://${process.env.DB_User}:${process.env.DB_Pass}@cluster0.pmqtpdf.mongodb.net/?retryWrites=true&w=majority`;
 
 // make a .env file and put this there -
@@ -65,29 +61,21 @@ async function run() {
     // await client.connect();
 
     const usersCollection = client.db("SoulMate-Matrimony").collection("users");
-    const coupleCollection = client
-      .db("SoulMate-Matrimony")
-      .collection("CoupleData");
+    const coupleCollection = client.db("SoulMate-Matrimony").collection("CoupleData");
     const blogsCollection = client.db("SoulMate-Matrimony").collection("blogs");
-
-    const bookedServiceCollection = client
-      .db("SoulMate-Matrimony")
-      .collection("bookedService");
-    const orderCollection = client
-      .db("SoulMate-Matrimony")
-      .collection("order");
-
-      // payment history collection
+    const userVerification = client.db("SoulMate-Matrimony").collection("userVerification");  
+    const bookedServiceCollection = client.db("SoulMate-Matrimony").collection("bookedService");
     const paymentHistoryCollection = client.db("SoulMate-Matrimony").collection("paymentHistory");
 
-    // JWt
 
+    // JWt 
+    
     const contactCollection = client
-      .db("SoulMate-Matrimony")
-      .collection("contacts");
+    .db("SoulMate-Matrimony")
+    .collection("contacts");
     const serviceCollection = client
-      .db("SoulMate-Matrimony")
-      .collection("services");
+    .db("SoulMate-Matrimony")
+    .collection("services");
     const statusCollection = client
       .db("SoulMate-Matrimony")
       .collection("statusPost");
@@ -95,9 +83,7 @@ async function run() {
     // JWt
     app.post("/jwt", (req, res) => {
       const user = req.body;
-      const token = jwt.sign(user, process.env.ACCESS_TOKEN_SECRET, {
-        expiresIn: "24h",
-      });
+      const token = jwt.sign(user, process.env.ACCESS_TOKEN_SECRET, {expiresIn: "24h",});
       res.send({ token });
     });
 
@@ -165,33 +151,32 @@ async function run() {
       const query = { email: email };
       const user = await usersCollection.findOne(query);
       if (user?.role !== "admin") {
-        return res
-          .status(403)
-          .send({ error: true, message: "forbidden message" });
+        return res.status(403).send({ error: true, message: "forbidden message" });
       }
       next();
     };
     // app.get("/users", verifyJWT, verifyAdmin, async (req, res) => {
-    //   const result = await userCollection.find().toArray();
-    //   res.send(result)
-    // })
-
-    // instructor middleware
-    const verifyInstructor = async (req, res, next) => {
-      const email = req.decoded.email;
-      const query = { email: email };
-      const user = await usersCollection.findOne(query);
-      if (user?.role !== "instructor") {
-        return res
+      //   const result = await userCollection.find().toArray();
+      //   res.send(result)
+      // })
+      
+      // instructor middleware
+      const verifyInstructor = async (req, res, next) => {
+        const email = req.decoded.email;
+        const query = { email: email };
+        const user = await usersCollection.findOne(query);
+        if (user?.role !== "instructor") {
+          return res
           .status(403)
           .send({ error: true, message: "forbidden message" });
-      }
-      next();
+        }
+        next();
     };
-
+    
     //admin verification
     app.get("/users/admin/:email", verifyJWT, async (req, res) => {
       const email = req.params.email;
+      console.log(email);
       if (req.decoded.email !== email) {
         res.send({ admin: false });
       }
@@ -200,15 +185,15 @@ async function run() {
       const result = { admin: user?.role === "admin" };
       res.send(result);
     });
-
+    
     // check Instructor
     app.get("/users/instructor/:email", verifyJWT, async (req, res) => {
       const email = req.params.email;
-
+      
       if (req.decoded.email !== email) {
         res.send({ instructor: false });
       }
-
+      
       const query = { email: email };
       const user = await usersCollection.findOne(query);
       const result = { admin: user?.role === "instructor" };
@@ -227,28 +212,127 @@ async function run() {
       }
       const query = { email: email };
       const result = await usersCollection.findOne(query);
-      res.send(result);
-    });
+      res.send(result) 
+    })
+    
+    //update user data
+    app.put("/update1",async (req, res) => {
+      const id = req.body.id;
+      const query = { _id: new ObjectId(id) };
+      const updateInfo = req.body;
+      const updateDoc = {
+        $set: {
+          profile_complete: updateInfo.profile_complete,
+          mobile: updateInfo.mobile,
+          age: updateInfo.age,
+          height: updateInfo.height,
+          weight: updateInfo.weight,
+          marital_status: updateInfo.marital_status,
+          gender: updateInfo.gender,
+          religion: updateInfo.religion,
+          profile: updateInfo.profileFor,
+          country: updateInfo.country,
+          state: updateInfo.state,
+          city: updateInfo?.city
+        },
+      };
+      const options = { upsert: true };
+      const result = await usersCollection.updateOne(query,updateDoc,options);
+      res.send(result)
+    })
 
-    //user get point
+    //update user data
+    app.put("/update2",async (req, res) => {
+      const id = req.body.id;
+      const query = { _id: new ObjectId(id) };
+      const updateInfo = req.body;
+      console.log(updateInfo)
+      const updateDoc = {
+        $set: {
+          profile_complete: updateInfo.profile_complete,
+          education: updateInfo.education,
+          qualifications: updateInfo.qualifications,
+          work: updateInfo.workingIn,
+          jobSector: updateInfo.jobSector,
+          yearlyIncome: updateInfo.salary
+        },
+      };
+      const options = { upsert: true };
+      const result = await usersCollection.updateOne(query,updateDoc,options);
+      res.send(result)
+    })
+
+    app.put("/update3",async (req, res) => {
+      const id = req.body.id;
+      const query = { _id: new ObjectId(id) };
+      const updateInfo = req.body;
+      console.log(updateInfo)
+      const updateDoc = {
+        $set: {
+          profile_complete: updateInfo.profile_complete,
+          religionValue : updateInfo.religionValue,
+          foodHabit : updateInfo.foodHabit,
+          smokingHabit: updateInfo.smokingHabit,
+          drinkHabit : updateInfo.drinkHabit,
+        },
+      };
+      const options = { upsert: true };
+      const result = await usersCollection.updateOne(query,updateDoc,options);
+      res.send(result)
+    })
+
+    app.put("/update4",async (req, res) => {
+      const id = req.body.id;
+      const query = { _id: new ObjectId(id) };
+      const updateInfo = req.body;
+      console.log(updateInfo)
+      const updateDoc = {
+        $set: {
+          profile_complete: updateInfo.profile_complete,
+          profileImage : updateInfo.profileImage,
+        },
+      };
+      const options = { upsert: true };
+      const result = await usersCollection.updateOne(query,updateDoc,options);
+      res.send(result)
+    })
+
+
+    app.put("/update5",async (req, res) => {
+      const id = req.body.id;
+      const query = { _id: new ObjectId(id) };
+      const updateInfo = req.body;
+      const updateDoc1 = {
+        $set: {
+          profile_complete: updateInfo.profile_complete,
+        },
+      };
+      const options = { upsert: true };
+      const updateProfile_complete = await usersCollection.updateOne(query,updateDoc1,options);
+      const verifyUser = await userVerification.insertOne(updateInfo)
+      res.send({updateProfile_complete, verifyUser})
+    })
+
+
+    //get all user
     app.get("/allUser", async (req, res) => {
       const result = await usersCollection.find().toArray();
       return res.send(result);
     });
-
+    
     app.get("/specificUser/:id", async (req, res) => {
       const id = req.params.id;
       const query = { _id: new ObjectId(id) };
       const result = await usersCollection.findOne(query);
       return res.send(result);
     });
-
+    
     app.post("/allUser", async (req, res) => {
       const user = req.body;
       const query = { email: user.email };
-
+      
       const excitingUser = await usersCollection.findOne(query);
-
+      
       if (excitingUser) {
         return res.send({ message: "user exists" });
       }
@@ -281,26 +365,25 @@ async function run() {
       const result = await contactCollection.insertOne(contactData);
       res.send(result);
     });
-
+    
     // get photography services data
     app.get("/service/photography", async (req, res) => {
       const query = { category: "photography" };
       const result = await serviceCollection.find(query).toArray();
       res.send(result);
     });
-
+    
     app.get("/service/hotel", async (req, res) => {
       const query = { category: "hotel" };
       const result = await serviceCollection.find(query).toArray();
       res.send(result);
     });
-
+    
     app.get("/service/catering", async (req, res) => {
       const query = { category: "catering" };
       const result = await serviceCollection.find(query).toArray();
       res.send(result);
     });
-
     // get single service data
     app.get("/service/:id", async (req, res) => {
       const id = req.params.id;
@@ -336,14 +419,14 @@ async function run() {
       const result = await blogsCollection.find().toArray();
       return res.send(result);
     });
-
+    
     app.post("/blogs", async (req, res) => {
       const newBlogs = req.body;
       console.log(newBlogs);
       const result = await blogsCollection.insertOne(newBlogs);
       return res.send(result);
     });
-
+    
     app.get("/blogs/:id", async (req, res) => {
       const id = req.params.id;
       const query = { _id: new ObjectId(id) };
@@ -484,10 +567,11 @@ async function run() {
     //if any issue comment this line.
     await client.connect();
     // Send a ping to confirm a successful connection
+    await client.connect();
     await client.db("admin").command({ ping: 1 });
     console.log(
       "Pinged your deployment. You successfully connected to MongoDB!"
-    );
+      );
   } catch (error) {
     console.error("MongoDB connection error:", error);
   } finally {
