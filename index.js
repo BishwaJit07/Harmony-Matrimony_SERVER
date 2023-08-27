@@ -12,6 +12,9 @@ const stripe = require("stripe")(process.env.PAYMENT_KEY);
 app.use(cors());
 app.use(express.json());
 
+
+
+
 const verifyJWT = (req, res, next) => {
   const authorization = req.headers.authorization;
   if (!authorization) {
@@ -69,6 +72,7 @@ async function run() {
       .db("SoulMate-Matrimony")
       .collection("CoupleData");
     const blogsCollection = client.db("SoulMate-Matrimony").collection("blogs");
+
     const userVerification = client
       .db("SoulMate-Matrimony")
       .collection("userVerification");
@@ -78,6 +82,9 @@ async function run() {
     const paymentHistoryCollection = client
       .db("SoulMate-Matrimony")
       .collection("paymentHistory");
+
+    const orderCollection = client.db("SoulMate-Matrimony").collection("order");
+
 
     // JWt
 
