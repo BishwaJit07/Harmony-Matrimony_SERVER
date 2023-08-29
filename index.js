@@ -65,22 +65,16 @@ async function run() {
     // await client.connect();
 
     const usersCollection = client.db("SoulMate-Matrimony").collection("users");
-    const coupleCollection = client
-      .db("SoulMate-Matrimony")
-      .collection("CoupleData");
+    const coupleCollection = client.db("SoulMate-Matrimony").collection("CoupleData");
     const blogsCollection = client.db("SoulMate-Matrimony").collection("blogs");
-
-    const userVerification = client
-      .db("SoulMate-Matrimony")
-      .collection("userVerification");
-    const bookedServiceCollection = client
-      .db("SoulMate-Matrimony")
-      .collection("bookedService");
-    const paymentHistoryCollection = client
-      .db("SoulMate-Matrimony")
-      .collection("paymentHistory");
-
+    const userVerification = client.db("SoulMate-Matrimony").collection("userVerification");  
+    const bookedServiceCollection = client.db("SoulMate-Matrimony").collection("bookedService");
+    const paymentHistoryCollection = client.db("SoulMate-Matrimony").collection("paymentHistory");
+    const contactCollection = client.db("SoulMate-Matrimony").collection("contacts");
+    const serviceCollection = client.db("SoulMate-Matrimony").collection("services");
+    const statusCollection = client.db("SoulMate-Matrimony").collection("statusPost");
     const orderCollection = client.db("SoulMate-Matrimony").collection("order");
+
 
     // JWt
 
@@ -93,6 +87,7 @@ async function run() {
     const statusCollection = client
       .db("SoulMate-Matrimony")
       .collection("statusPost");
+
 
     // JWt
     app.post("/jwt", (req, res) => {
@@ -243,7 +238,7 @@ async function run() {
           age: updateInfo.age,
           height: updateInfo.height,
           weight: updateInfo.weight,
-          marital_status: updateInfo.marital_status,
+          marital_status: updateInfo.maritalStatus,
           gender: updateInfo.gender,
           religion: updateInfo.religion,
           profile: updateInfo.profileFor,
@@ -312,8 +307,23 @@ async function run() {
       const result = await usersCollection.updateOne(query, updateDoc, options);
       res.send(result);
     });
-
     app.put("/update5", async (req, res) => {
+      const id = req.body.id;
+      const query = { _id: new ObjectId(id) };
+      const updateInfo = req.body;
+      const updateDoc = {
+        $set: {
+          profile_complete: updateInfo.profile_complete,
+          aboutMe : updateInfo.aboutMe,
+          interests : updateInfo.hobbies
+        },
+      };
+      const options = { upsert: true };
+      const result = await usersCollection.updateOne(query, updateDoc, options);
+      res.send(result);
+    });
+
+    app.put("/update7", async (req, res) => {
       const id = req.body.id;
       const query = { _id: new ObjectId(id) };
       const updateInfo = req.body;
