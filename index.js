@@ -65,17 +65,27 @@ async function run() {
     // Connect the client to the server	(optional starting in v4.7)
     // await client.connect();
 
-    const usersCollection = client.db("SoulMate-Matrimony").collection("users");
-    const coupleCollection = client.db("SoulMate-Matrimony").collection("CoupleData");
+    const usersCollection = client
+    .db("SoulMate-Matrimony").collection("users");
+    const authorityCollection = client
+    .db("SoulMate-Matrimony").collection("authority");
+    const coupleCollection = client
+      .db("SoulMate-Matrimony")
+      .collection("CoupleData");
     const blogsCollection = client.db("SoulMate-Matrimony").collection("blogs");
-    const userVerification = client.db("SoulMate-Matrimony").collection("userVerification");  
-    const bookedServiceCollection = client.db("SoulMate-Matrimony").collection("bookedService");
-    const paymentHistoryCollection = client.db("SoulMate-Matrimony").collection("paymentHistory");
-    const contactCollection = client.db("SoulMate-Matrimony").collection("contacts");
-    const serviceCollection = client.db("SoulMate-Matrimony").collection("services");
-    const statusCollection = client.db("SoulMate-Matrimony").collection("statusPost");
-    const orderCollection = client.db("SoulMate-Matrimony").collection("order");
 
+    const userVerification = client
+      .db("SoulMate-Matrimony")
+      .collection("userVerification");
+    const bookedServiceCollection = client
+      .db("SoulMate-Matrimony")
+      .collection("bookedService");
+    const paymentHistoryCollection = client
+      .db("SoulMate-Matrimony")
+      .collection("paymentHistory");
+
+    const orderCollection = client
+    .db("SoulMate-Matrimony").collection("order");
 
     // JWt
 
@@ -369,6 +379,27 @@ async function run() {
       return res.send(result);
     });
 
+    // authority 
+
+    app.get("/authority", async (req, res) => {
+      const result = await authorityCollection.find().toArray();
+      return res.send(result);
+    });
+
+
+    app.post("/authority", async (req, res) => {
+      const user = req.body;
+      const query = { email: user.email };
+
+      const excitingUser = await authorityCollection.findOne(query);
+
+      if (excitingUser) {
+        return res.send({ message: "user exists" });
+      }
+      const result = await authorityCollection.insertOne(user);
+      return res.send(result);
+    });
+
     //Couples related api
 
     app.get("/allCouple", async (req, res) => {
@@ -530,8 +561,8 @@ async function run() {
         total_amount: order.price,
         currency: "BDT",
         tran_id: train_id,
-        success_url: `https://harmony-matrimony-server.vercel.app/payment/success/${train_id}`,
-        fail_url: `https://harmony-matrimony-server.vercel.app/payment/fail/${train_id}`,
+        success_url: `https://soulmates-server-two.vercel.app/payment/success/${train_id}`,
+        fail_url: `https://soulmates-server-two.vercel.app/payment/fail/${train_id}`,
         cancel_url: "http://localhost:3030/cancel", //not Important
         ipn_url: "http://localhost:3030/ipn", //not Important
         shipping_method: "Courier",
@@ -615,7 +646,7 @@ async function run() {
           );
 
           res.redirect(
-            `https://harmony-matrimony-server.vercel.app/payment/success/${req.params.tranId}`
+            `https://soulmates-server-two.vercel.app/payment/success/${req.params.tranId}`
           );
         }
       });
@@ -625,7 +656,7 @@ async function run() {
         });
         if (result.deletedCount) {
           res.redirect(
-            `https://harmony-matrimony-server.vercel.app/payment/fail/${req.params.tranId}`
+            `https://soulmates-server-two.vercel.app/payment/fail/${req.params.tranId}`
           );
         }
       });
