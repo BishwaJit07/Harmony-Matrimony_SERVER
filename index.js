@@ -68,9 +68,7 @@ async function run() {
     // await client.connect();
 
     const usersCollection = client.db("SoulMate-Matrimony").collection("users");
-    const coupleCollection = client
-      .db("SoulMate-Matrimony")
-      .collection("CoupleData");
+    const coupleCollection = client.db("SoulMate-Matrimony").collection("CoupleData");
     const blogsCollection = client.db("SoulMate-Matrimony").collection("blogs");
     const userVerification = client.db("SoulMate-Matrimony").collection("userVerification");  
     const bookedServiceCollection = client.db("SoulMate-Matrimony").collection("bookedService");
@@ -298,8 +296,23 @@ async function run() {
       const result = await usersCollection.updateOne(query, updateDoc, options);
       res.send(result);
     });
-
     app.put("/update5", async (req, res) => {
+      const id = req.body.id;
+      const query = { _id: new ObjectId(id) };
+      const updateInfo = req.body;
+      const updateDoc = {
+        $set: {
+          profile_complete: updateInfo.profile_complete,
+          aboutMe : updateInfo.aboutMe,
+          interests : updateInfo.hobbies
+        },
+      };
+      const options = { upsert: true };
+      const result = await usersCollection.updateOne(query, updateDoc, options);
+      res.send(result);
+    });
+
+    app.put("/update7", async (req, res) => {
       const id = req.body.id;
       const query = { _id: new ObjectId(id) };
       const updateInfo = req.body;
