@@ -7,6 +7,7 @@ const jwt = require("jsonwebtoken");
 const port = process.env.PORT || 5000;
 const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 const stripe = require("stripe")(process.env.PAYMENT_KEY);
+const schedule = require("node-schedule");
 
 // middleware
 app.use(cors());
@@ -620,15 +621,19 @@ async function run() {
           const plan = await orderCollection.findOne(query);
 
           if (plan.order.plan === "gold") {
-            visitCount = 100;
+            visitCount = 20;
           } else if (plan.order.plan === "platinum") {
-            visitCount = 150;
+            visitCount = 30;
           }
+
+          const nextMonth = new Date();
+          nextMonth.setMonth(nextMonth.getMonth() + 1);
 
           const filter = { email: plan.order.email };
           const option = { upsert: true };
           const setCls = {
             $set: {
+              expire: nextMonth,
               plan: plan.order.plan,
               profileVisit: visitCount,
             },
@@ -692,6 +697,39 @@ async function run() {
 
       const result = await usersCollection.updateOne(filter, setCls, option);
       res.send(result);
+    });
+
+    //using node-schedule part
+    const updateDays = async (filterPlan, increment) => {
+      const filter = { plan: filterPlan };
+      const option = { upsert: true };
+      const setCls = {
+        $set: {
+          profileVisit: increment,
+        },
+      };
+      const result = await usersCollection.updateMany(filter, setCls, option);
+    };
+
+    const updateMonths = async (planItm) => {
+      const currentTime = new Date();
+      const query = { plan: planItm, expire: { $lte: currentTime } };
+      const objects = await usersCollection.find(query).toArray();
+
+      for (const obj of objects) {
+        await usersCollection.updateOne(
+          { _id: obj._id },
+          { $set: { plan: "free", profileVisit: 50, expire: new Date() } }
+        );
+      }
+    };
+
+    schedule.scheduleJob("* 1 * * *", async () => {
+      await updateDays("gold", 120);
+      await updateDays("platinum", 130);
+      await updateMonths("gold");
+      await updateMonths("platinum");
+      console.log("schedule Running....");
     });
 
     //if any issue comment this line.
