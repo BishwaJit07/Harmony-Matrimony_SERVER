@@ -98,6 +98,7 @@ async function run() {
       .db("SoulMate-Matrimony")
       .collection("statusPost");
 
+
     // JWt
     app.post("/jwt", (req, res) => {
       const user = req.body;
@@ -247,7 +248,7 @@ async function run() {
           age: updateInfo.age,
           height: updateInfo.height,
           weight: updateInfo.weight,
-          marital_status: updateInfo.marital_status,
+          marital_status: updateInfo.maritalStatus,
           gender: updateInfo.gender,
           religion: updateInfo.religion,
           profile: updateInfo.profileFor,
@@ -316,8 +317,23 @@ async function run() {
       const result = await usersCollection.updateOne(query, updateDoc, options);
       res.send(result);
     });
-
     app.put("/update5", async (req, res) => {
+      const id = req.body.id;
+      const query = { _id: new ObjectId(id) };
+      const updateInfo = req.body;
+      const updateDoc = {
+        $set: {
+          profile_complete: updateInfo.profile_complete,
+          aboutMe : updateInfo.aboutMe,
+          interests : updateInfo.hobbies
+        },
+      };
+      const options = { upsert: true };
+      const result = await usersCollection.updateOne(query, updateDoc, options);
+      res.send(result);
+    });
+
+    app.put("/update7", async (req, res) => {
       const id = req.body.id;
       const query = { _id: new ObjectId(id) };
       const updateInfo = req.body;
