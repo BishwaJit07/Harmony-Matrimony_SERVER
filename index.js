@@ -66,19 +66,10 @@ async function run() {
     const userVerification = client.db("SoulMate-Matrimony").collection("userVerification");  
     const bookedServiceCollection = client.db("SoulMate-Matrimony").collection("bookedService");
     const paymentHistoryCollection = client.db("SoulMate-Matrimony").collection("paymentHistory");
-
-
-    // JWt 
-    
-    const contactCollection = client
-    .db("SoulMate-Matrimony")
-    .collection("contacts");
-    const serviceCollection = client
-    .db("SoulMate-Matrimony")
-    .collection("services");
-    const statusCollection = client
-      .db("SoulMate-Matrimony")
-      .collection("statusPost");
+    const contactCollection = client.db("SoulMate-Matrimony").collection("contacts");
+    const serviceCollection = client.db("SoulMate-Matrimony").collection("services");
+    const statusCollection = client.db("SoulMate-Matrimony").collection("statusPost");
+    const orderCollection = client.db("SoulMate-Matrimony").collection("order");
 
     // JWt
     app.post("/jwt", (req, res) => {
@@ -227,7 +218,7 @@ async function run() {
           age: updateInfo.age,
           height: updateInfo.height,
           weight: updateInfo.weight,
-          marital_status: updateInfo.marital_status,
+          marital_status: updateInfo.maritalStatus,
           gender: updateInfo.gender,
           religion: updateInfo.religion,
           profile: updateInfo.profileFor,
