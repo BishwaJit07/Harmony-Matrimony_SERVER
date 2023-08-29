@@ -64,7 +64,10 @@ async function run() {
     // Connect the client to the server	(optional starting in v4.7)
     // await client.connect();
 
-    const usersCollection = client.db("SoulMate-Matrimony").collection("users");
+    const usersCollection = client
+    .db("SoulMate-Matrimony").collection("users");
+    const authorityCollection = client
+    .db("SoulMate-Matrimony").collection("authority");
     const coupleCollection = client
       .db("SoulMate-Matrimony")
       .collection("CoupleData");
@@ -80,7 +83,8 @@ async function run() {
       .db("SoulMate-Matrimony")
       .collection("paymentHistory");
 
-    const orderCollection = client.db("SoulMate-Matrimony").collection("order");
+    const orderCollection = client
+    .db("SoulMate-Matrimony").collection("order");
 
     // JWt
 
@@ -355,6 +359,27 @@ async function run() {
         return res.send({ message: "user exists" });
       }
       const result = await usersCollection.insertOne(user);
+      return res.send(result);
+    });
+
+    // authority 
+
+    app.get("/authority", async (req, res) => {
+      const result = await authorityCollection.find().toArray();
+      return res.send(result);
+    });
+
+
+    app.post("/authority", async (req, res) => {
+      const user = req.body;
+      const query = { email: user.email };
+
+      const excitingUser = await authorityCollection.findOne(query);
+
+      if (excitingUser) {
+        return res.send({ message: "user exists" });
+      }
+      const result = await authorityCollection.insertOne(user);
       return res.send(result);
     });
 
