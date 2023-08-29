@@ -12,9 +12,6 @@ const stripe = require("stripe")(process.env.PAYMENT_KEY);
 app.use(cors());
 app.use(express.json());
 
-
-
-
 const verifyJWT = (req, res, next) => {
   const authorization = req.headers.authorization;
   if (!authorization) {
@@ -77,6 +74,20 @@ async function run() {
     const serviceCollection = client.db("SoulMate-Matrimony").collection("services");
     const statusCollection = client.db("SoulMate-Matrimony").collection("statusPost");
     const orderCollection = client.db("SoulMate-Matrimony").collection("order");
+
+
+    // JWt
+
+    const contactCollection = client
+      .db("SoulMate-Matrimony")
+      .collection("contacts");
+    const serviceCollection = client
+      .db("SoulMate-Matrimony")
+      .collection("services");
+    const statusCollection = client
+      .db("SoulMate-Matrimony")
+      .collection("statusPost");
+
 
     // JWt
     app.post("/jwt", (req, res) => {
@@ -572,6 +583,32 @@ async function run() {
           }
         );
         if (result.modifiedCount > 0) {
+          //update users plan
+          let visitCount = 0;
+          const query = { transaction: req.params.tranId };
+          const plan = await orderCollection.findOne(query);
+
+          if (plan.order.plan === "gold") {
+            visitCount = 100;
+          } else if (plan.order.plan === "platinum") {
+            visitCount = 150;
+          }
+
+          const filter = { email: plan.order.email };
+          const option = { upsert: true };
+          const setCls = {
+            $set: {
+              plan: plan.order.plan,
+              profileVisit: visitCount,
+            },
+          };
+
+          const result = await usersCollection.updateOne(
+            filter,
+            setCls,
+            option
+          );
+
           res.redirect(
             `https://harmony-matrimony-server.vercel.app/payment/success/${req.params.tranId}`
           );
@@ -587,6 +624,43 @@ async function run() {
           );
         }
       });
+    });
+
+    //user plan set
+    app.get("/userPlan", async (req, res) => {
+      const email = req.query.email;
+
+      if (!email) {
+        return res.status(400).json({ error: "Email is required." });
+      }
+
+      const query = { email: email };
+      const result = await usersCollection.findOne(query);
+
+      if (!result) {
+        return res.status(404).json({ error: "User not found." });
+      }
+
+      const planData = {
+        userEmail: result.email,
+        userPlan: result.plan,
+        profileVisit: result.profileVisit,
+      };
+
+      res.send(planData);
+    });
+
+    app.put("/profileVisit", async (req, res) => {
+      const filter = { email: req.query.user };
+      const option = { upsert: true };
+      const setCls = {
+        $inc: {
+          profileVisit: -1,
+        },
+      };
+
+      const result = await usersCollection.updateOne(filter, setCls, option);
+      res.send(result);
     });
 
     //if any issue comment this line.
