@@ -86,6 +86,8 @@ async function run() {
 
     const orderCollection = client
     .db("SoulMate-Matrimony").collection("order");
+    const reviewCollection = client
+    .db("SoulMate-Matrimony").collection("review");
 
     // JWt
 
@@ -420,11 +422,25 @@ async function run() {
       res.send(result);
     });
 
+
     app.post("/contact", async (req, res) => {
       const contactData = req.body;
       const result = await contactCollection.insertOne(contactData);
       res.send(result);
     });
+
+        //  user review
+        app.get("/reviews", async (req, res) => {
+          const result = await reviewCollection.find().toArray();
+          return res.send(result);
+        });
+    
+        app.post("/reviews", async (req, res) => {
+          const newreview = req.body;
+          console.log(newreview);
+          const result = await reviewCollection.insertOne(newstory);
+          return res.send(result);
+        });
 
     // get photography services data
     app.get("/service/photography", async (req, res) => {
