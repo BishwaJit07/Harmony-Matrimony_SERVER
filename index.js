@@ -88,6 +88,8 @@ async function run() {
     .db("SoulMate-Matrimony").collection("order");
     const reviewCollection = client
     .db("SoulMate-Matrimony").collection("review");
+    const teamMemberCollection = client
+    .db("SoulMate-Matrimony").collection("meetourteam");
 
     // JWt
 
@@ -360,6 +362,7 @@ async function run() {
       const result = await usersCollection.find().toArray();
       return res.send(result);
     });
+  
 
     app.get("/specificUser/:id", async (req, res) => {
       const id = req.params.id;
@@ -381,10 +384,11 @@ async function run() {
       return res.send(result);
     });
 
-    // authority 
-
-    app.get("/authority", async (req, res) => {
-      const result = await authorityCollection.find().toArray();
+    //  team Members 
+    app.get("/team", async (req, res) => {
+      const result = await teamMemberCollection.find().toArray();
+      return res.send(result);
+    });ityCollection.find().toArray();
       return res.send(result);
     });
 
