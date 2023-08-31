@@ -1,0 +1,59 @@
+[
+    {
+      "img": "https://i.ibb.co/89m5PG7/30072023-133240-Helena-Atik-true-DSLR-PORTRAIT-3-01.jpg",
+      "name":"Bishwajit Shill",
+      "team_role": "Team Leader",
+      "facebook":"https://www.facebook.com/ghumonto.himu.1/",
+      "linkdin":"https://www.linkedin.com/in/bishwa-jit07/",
+      "web":"http://bishwajit-007.netlify.app/"
+
+    },
+    {
+      "img": "https://i.ibb.co/j3qPff8/0y12u4x7.png",
+      "name":"SK Naime Hasan",
+      "team_role": "Project Leader",
+      "facebook":"https://www.facebook.com/naime.naime.3192/",
+      "linkdin":"https://www.linkedin.com/in/naime-hasan-63874719b/",
+      "web":"https://portfolio-5c3g.vercel.app/"
+
+    },
+    {
+      "img": "https://i.ibb.co/QPBrdMc/gof9fmnp.png",
+      "name":"Khadiza Samiha",
+      "team_role": "Frontend Developer",
+      "facebook":"https://www.facebook.com/profile.php?id=100088604501325",
+      "linkdin":"https://www.linkedin.com/in/khadiza-samiha-402b81262/",
+      "web":"https://sensational-tapioca-c29036.netlify.app/"
+
+    },
+    {
+      "img": "https://i.ibb.co/5RRy1zh/useog3hc.png",
+      "name":"Prodip Kumar Shil",
+      "team_role": "Frontend Developer",
+      "facebook":"https://www.facebook.com/prodip.kumar.7965",
+      "linkdin":"https://www.linkedin.com/in/prodip-kumar-shil-4159b7280/",
+      "web":"https://dev-prodip-kumar-shil.web.app/"
+
+    },
+    {
+        "img": "https://i.ibb.co/j3qPff8/0y12u4x7.png",
+        "name":"Hasibur Hossain Santo",
+        "team_role": "Backend Developer",
+        "facebook":"https://www.facebook.com/profile.php?id=100085441983598&mibextid=ZbWKwL",
+        "linkdin":"https://www.linkedin.com/in/hasibur-hossain-santo-776245279/",
+        "web":"https://hasiburhossainsanto.netlify.app/"
+  
+      },
+    {
+      "img": "https://i.ibb.co/nPFkVZd/57u1pzqa.png",
+      "name":"Abul Ala Jobayar ",
+      "team_role": "Frontend Developer",
+      "facebook":"https://www.facebook.com/profile.php?id=100010086635226",
+      "linkdin":"",
+      "web":"https://jobayarportfolio.netlify.app/"
+
+    }
+   
+    
+   
+  ]

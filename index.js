@@ -65,10 +65,10 @@ async function run() {
     // Connect the client to the server	(optional starting in v4.7)
     // await client.connect();
 
-    const usersCollection = client
-    .db("SoulMate-Matrimony").collection("users");
+    const usersCollection = client.db("SoulMate-Matrimony").collection("users");
     const authorityCollection = client
-    .db("SoulMate-Matrimony").collection("authority");
+      .db("SoulMate-Matrimony")
+      .collection("authority");
     const coupleCollection = client
       .db("SoulMate-Matrimony")
       .collection("CoupleData");
@@ -84,8 +84,13 @@ async function run() {
       .db("SoulMate-Matrimony")
       .collection("paymentHistory");
 
-    const orderCollection = client
-    .db("SoulMate-Matrimony").collection("order");
+    const orderCollection = client.db("SoulMate-Matrimony").collection("order");
+    const reviewCollection = client
+      .db("SoulMate-Matrimony")
+      .collection("review");
+    const teamMemberCollection = client
+      .db("SoulMate-Matrimony")
+      .collection("meetourteam");
 
     // JWt
 
@@ -98,7 +103,6 @@ async function run() {
     const statusCollection = client
       .db("SoulMate-Matrimony")
       .collection("statusPost");
-
 
     // JWt
     app.post("/jwt", (req, res) => {
@@ -325,8 +329,8 @@ async function run() {
       const updateDoc = {
         $set: {
           profile_complete: updateInfo.profile_complete,
-          aboutMe : updateInfo.aboutMe,
-          interests : updateInfo.hobbies
+          aboutMe: updateInfo.aboutMe,
+          interests: updateInfo.hobbies,
         },
       };
       const options = { upsert: true };
@@ -379,13 +383,11 @@ async function run() {
       return res.send(result);
     });
 
-    // authority 
-
-    app.get("/authority", async (req, res) => {
-      const result = await authorityCollection.find().toArray();
+    //  team Members
+    app.get("/team", async (req, res) => {
+      const result = await teamMemberCollection.find().toArray();
       return res.send(result);
     });
-
 
     app.post("/authority", async (req, res) => {
       const user = req.body;
@@ -424,6 +426,19 @@ async function run() {
       const contactData = req.body;
       const result = await contactCollection.insertOne(contactData);
       res.send(result);
+    });
+
+    //  user review
+    app.get("/reviews", async (req, res) => {
+      const result = await reviewCollection.find().toArray();
+      return res.send(result);
+    });
+
+    app.post("/reviews", async (req, res) => {
+      const newreview = req.body;
+      console.log(newreview);
+      const result = await reviewCollection.insertOne(newstory);
+      return res.send(result);
     });
 
     // get photography services data
@@ -527,6 +542,13 @@ async function run() {
         sort: { react: -1 },
       };
       const result = await blogsCollection.find(query, options).toArray();
+      return res.send(result);
+    });
+
+    app.get("/blogsLatest", async (req, res) => {
+      const query = {};
+      sortBy = { _id: -1 };
+      const result = await blogsCollection.find(query).sort(sortBy).toArray();
       return res.send(result);
     });
 
