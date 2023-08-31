@@ -65,44 +65,25 @@ async function run() {
     // Connect the client to the server	(optional starting in v4.7)
     // await client.connect();
 
-    const usersCollection = client.db("SoulMate-Matrimony").collection("users");
-    const authorityCollection = client
-      .db("SoulMate-Matrimony")
-      .collection("authority");
-    const coupleCollection = client
-      .db("SoulMate-Matrimony")
-      .collection("CoupleData");
-    const blogsCollection = client.db("SoulMate-Matrimony").collection("blogs");
+    function getCollection(collectionName) {
+      return client.db("SoulMate-Matrimony").collection(collectionName);
+    }
 
-    const userVerification = client
-      .db("SoulMate-Matrimony")
-      .collection("userVerification");
-    const bookedServiceCollection = client
-      .db("SoulMate-Matrimony")
-      .collection("bookedService");
-    const paymentHistoryCollection = client
-      .db("SoulMate-Matrimony")
-      .collection("paymentHistory");
-
-    const orderCollection = client.db("SoulMate-Matrimony").collection("order");
-    const reviewCollection = client
-      .db("SoulMate-Matrimony")
-      .collection("review");
-    const teamMemberCollection = client
-      .db("SoulMate-Matrimony")
-      .collection("meetourteam");
-
+    const usersCollection = getCollection("users");
+    const authorityCollection = getCollection("authority");
+    const coupleCollection = getCollection("CoupleData");
+    const blogsCollection = getCollection("blogs");
+    const userVerification = getCollection("userVerification");
+    const bookedServiceCollection = getCollection("bookedService");
+    const paymentHistoryCollection = getCollection("paymentHistory");
+    const orderCollection = getCollection("order");
+    const reviewCollection = getCollection("review");
+    const teamMemberCollection = getCollection("meetourteam");
     // JWt
-
-    const contactCollection = client
-      .db("SoulMate-Matrimony")
-      .collection("contacts");
-    const serviceCollection = client
-      .db("SoulMate-Matrimony")
-      .collection("services");
-    const statusCollection = client
-      .db("SoulMate-Matrimony")
-      .collection("statusPost");
+    const contactCollection = getCollection("contacts");
+    const serviceCollection = getCollection("services");
+    const statusCollection = getCollection("statusPost");
+    const meetCollection = getCollection("setMeeting");
 
     // JWt
     app.post("/jwt", (req, res) => {
@@ -550,6 +531,18 @@ async function run() {
       sortBy = { _id: -1 };
       const result = await blogsCollection.find(query).sort(sortBy).toArray();
       return res.send(result);
+    });
+
+    app.patch("/blogss/:id", async (req, res) => {
+      const id = req.params.id;
+      const filter = { _id: new ObjectId(id) };
+      const updateDoc = {
+        $inc: {
+          react: -1,
+        },
+      };
+      const result = await blogsCollection.updateOne(filter, updateDoc);
+      res.send(result);
     });
 
     //user status post
