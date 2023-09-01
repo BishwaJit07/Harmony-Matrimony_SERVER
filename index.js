@@ -388,8 +388,6 @@ async function run() {
     app.get("/team", async (req, res) => {
       const result = await teamMemberCollection.find().toArray();
       return res.send(result);
-    });ityCollection.find().toArray();
-      return res.send(result);
     });
 
 
