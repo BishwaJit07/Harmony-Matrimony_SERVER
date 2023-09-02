@@ -404,6 +404,40 @@ async function run() {
       return res.send(result);
     });
 
+    app.get('/authority' , async(req, res) =>{
+      const result = await authorityCollection.find().toArray();
+      return res.send(result);
+    })
+    app.patch('/makeAdmin/:id', async(req, res) =>{
+      const id = req.params.id;
+      const filter = { _id: new ObjectId(id) }
+      const updateDoc = {
+          $set: {
+              role: "admin"
+          },
+      }
+      const result = await authorityCollection.updateOne(filter, updateDoc);
+      res.send(result)
+    })
+    app.patch('/makeSupport/:id', async(req, res) =>{
+      const id = req.params.id;
+      const filter = { _id: new ObjectId(id) }
+      const updateDoc = {
+          $set: {
+              role: "support"
+          },
+      }
+      const result = await authorityCollection.updateOne(filter, updateDoc);
+      res.send(result)
+    })
+    app.delete('/makeDelete/:id', async(req, res) =>{
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) }
+      const result = await authorityCollection.deleteOne(query);
+      res.send(result);
+    })
+
+    
     //Couples related api
 
     app.get("/allCouple", async (req, res) => {
