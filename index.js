@@ -676,6 +676,77 @@ async function run() {
         }
       });
     });
+// admin Dashboard
+
+    app.get("/adminStats", async(req,res)=>{
+      const user =await usersCollection.estimatedDocumentCount();
+      const coupleDate= await coupleCollection.estimatedDocumentCount();
+      const blog=await blogsCollection.estimatedDocumentCount()
+      const subscription=await orderCollection.estimatedDocumentCount()
+      const servicesPackage=await paymentHistoryCollection.estimatedDocumentCount();
+      const payments=await orderCollection.find().toArray();
+      const subpayment=payments.reduce((sum,payment)=>sum + payment.order.price,0)
+      
+      const services=await paymentHistoryCollection.find().toArray();
+      const cardService=services.reduce((sum,payment)=>sum + payment.price,0)
+      const cardServiceBd=parseFloat(cardService)*100
+      const revenue=cardServiceBd+subpayment
+      res.send({
+        user,coupleDate,blog,subscription,revenue,servicesPackage
+      })
+    })
+    app.get('/monthStats',async(req,res)=>{
+      const currentDate = new Date();
+    const firstDayOfMonth = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
+    const lastDayOfMonth = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0);
+
+    // const ordersCollection = db.collection('orders');
+    // const paymentsCollection = db.collection('payments');
+
+
+
+
+    const result = await Promise.all([
+      orderCollection.aggregate([
+        {
+          $match: {
+            orderDate: {
+              $gte: firstDayOfMonth,
+              $lte: lastDayOfMonth,
+            },
+          },
+        },
+        {
+          $group: {
+            _id: null,
+            totalRevenue: { $sum: '$order.price' },
+          },
+        },
+      ]).toArray(),
+      paymentHistoryCollection.aggregate([
+        {
+          $match: {
+            paymentDate: {
+              $gte: firstDayOfMonth,
+              $lte: lastDayOfMonth,
+            },
+          },
+        },
+        {
+          $group: {
+            _id: null,
+            totalPayments: { $sum: '$price' },
+          },
+        },
+      ]).toArray(),
+    ]);
+
+    const monthlyRevenue = result[0][0]?.totalRevenue || 0;
+    const monthlyPayments = result[1][0]?.totalPayments || 0;
+    const netMonthlyRevenue = monthlyRevenue - monthlyPayments;
+    res.send({ monthlyRevenue, monthlyPayments, netMonthlyRevenue })
+
+    })
 
     //user plan set
     app.get("/userPlan", async (req, res) => {
