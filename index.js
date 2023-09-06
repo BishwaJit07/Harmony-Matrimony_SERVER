@@ -362,6 +362,62 @@ async function run() {
       return res.send(result);
     });
 
+
+    //  team Members
+    app.get("/team", async (req, res) => {
+      const result = await teamMemberCollection.find().toArray();
+      return res.send(result);
+    });
+
+    app.post("/authority", async (req, res) => {
+      const user = req.body;
+      const query = { email: user.email };
+
+      const excitingUser = await authorityCollection.findOne(query);
+
+      if (excitingUser) {
+        return res.send({ message: "user exists" });
+      }
+      const result = await authorityCollection.insertOne(user);
+      return res.send(result);
+    });
+
+    app.get("/authority", async (req, res) => {
+      const search = req.query.search;
+      const query = {name : { $regex : search, $options : 'i'}}
+      const result = await authorityCollection.find(query).toArray();
+      return res.send(result);
+    });
+    app.delete('/deleteUser/:id', async(req, res) =>{
+      const id = req.params.id;
+      const filter = {_id: new ObjectId(id)};
+      const result = await usersCollection.deleteOne(filter);
+      return res.send(result)
+    })
+    app.patch("/makeApprove/:id", async (req, res) => {
+      const id = req.params.id;
+      const filter = { _id: new ObjectId(id) };
+      const updateDoc = {
+        $set: {
+          status: "approved",
+        },
+      };
+      const result = await authorityCollection.updateOne(filter, updateDoc);
+      res.send(result);
+    });
+    app.patch("/makeDenied/:id", async (req, res) => {
+      const id = req.params.id;
+      const filter = { _id: new ObjectId(id) };
+      const updateDoc = {
+        $set: {
+          status: "denied",
+        },
+      };
+      const result = await authorityCollection.updateOne(filter, updateDoc);
+      res.send(result);
+    });
+
+
     //Couples related api
 
     app.get("/allCouple", async (req, res) => {
@@ -593,60 +649,71 @@ async function run() {
         }
       });
     });
-// admin Dashboard
+    // admin Dashboard
 
-    app.get("/adminStats", async(req,res)=>{
-      const user =await usersCollection.estimatedDocumentCount();
-      const coupleDate= await coupleCollection.estimatedDocumentCount();
-      const blog=await blogsCollection.estimatedDocumentCount()
-      const subscription=await orderCollection.estimatedDocumentCount()
-      const servicesPackage=await paymentHistoryCollection.estimatedDocumentCount();
-      const payments=await orderCollection.find().toArray();
-      const subpayment=payments.reduce((sum,payment)=>sum + payment.order.price,0)
-      
-      const services=await paymentHistoryCollection.find().toArray();
-      const cardService=services.reduce((sum,payment)=>sum + payment.price,0)
-      const cardServiceBd=parseFloat(cardService)*100
-      const revenue=cardServiceBd+subpayment
+    app.get("/adminStats", async (req, res) => {
+      const user = await usersCollection.estimatedDocumentCount();
+      const coupleDate = await coupleCollection.estimatedDocumentCount();
+      const blog = await blogsCollection.estimatedDocumentCount();
+      const subscription = await orderCollection.estimatedDocumentCount();
+      const servicesPackage =
+        await paymentHistoryCollection.estimatedDocumentCount();
+      const payments = await orderCollection.find().toArray();
+      const subpayment = payments.reduce(
+        (sum, payment) => sum + payment.order.price,
+        0
+      );
+
+      const services = await paymentHistoryCollection.find().toArray();
+      const cardService = services.reduce(
+        (sum, payment) => sum + payment.price,
+        0
+      );
+      const cardServiceBd = parseFloat(cardService) * 100;
+      const revenue = cardServiceBd + subpayment;
       res.send({
-        user,coupleDate,blog,subscription,revenue,servicesPackage
-      })
-    })
-    app.get('/monthStats',async(req,res)=>{
+        user,
+        coupleDate,
+        blog,
+        subscription,
+        revenue,
+        servicesPackage,
+      });
+    });
+    app.get("/monthStats", async (req, res) => {
       const currentDate = new Date();
-    const firstDayOfMonth = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
-    const lastDayOfMonth = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0);
+      const firstDayOfMonth = new Date(
+        currentDate.getFullYear(),
+        currentDate.getMonth(),
+        1
+      );
+      const lastDayOfMonth = new Date(
+        currentDate.getFullYear(),
+        currentDate.getMonth() + 1,
+        0
+      );
 
-    // const ordersCollection = db.collection('orders');
-    // const paymentsCollection = db.collection('payments');
+      // const ordersCollection = db.collection('orders');
+      // const paymentsCollection = db.collection('payments');
 
-
-
-
-    const result = await Promise.all([
-      orderCollection.aggregate([
-        {
-          $match: {
-            orderDate: {
-              $gte: firstDayOfMonth,
-              $lte: lastDayOfMonth,
+      const result = await Promise.all([
+        orderCollection
+          .aggregate([
+            {
+              $match: {
+                orderDate: {
+                  $gte: firstDayOfMonth,
+                  $lte: lastDayOfMonth,
+                },
+              },
             },
-          },
-        },
-        {
-          $group: {
-            _id: null,
-            totalRevenue: { $sum: '$order.price' },
-          },
-        },
-      ]).toArray(),
-      paymentHistoryCollection.aggregate([
-        {
-          $match: {
-            paymentDate: {
-              $gte: firstDayOfMonth,
-              $lte: lastDayOfMonth,
+            {
+              $group: {
+                _id: null,
+                totalRevenue: { $sum: "$order.price" },
+              },
             },
+
           },
         },
         {
@@ -687,6 +754,131 @@ async function run() {
     })
   
 
+
+
+    //set meeting
+    app.get("/userPlanInfo", async (req, res) => {
+      const email = req.query.email;
+      if (!email) {
+        res.send([]);
+      }
+      const query = { email: email };
+      const projection = {
+        _id: 1,
+        name: 1,
+        age: 1,
+        email: 1,
+        profileVisit: 1,
+        plan: 1,
+        expire: 1,
+      };
+
+      const result = await usersCollection.findOne(query, {
+        projection: projection,
+      });
+      res.send(result);
+    });
+
+    app.post("/setMeeting", async (req, res) => {
+      const setMet = req.body;
+      const result = await meetCollection.insertOne(setMet);
+      return res.send(result);
+    });
+
+    async function getInfoData(paramQurey, userInfo) {
+      let projection = {};
+      if (userInfo === "user") {
+        projection = {
+          _id: 1,
+          partner: 1,
+          metDate: 1,
+        };
+      } else {
+        projection = {
+          _id: 1,
+          userId: 1,
+          metDate: 1,
+        };
+      }
+
+      const result = await meetCollection
+        .find(paramQurey, {
+          projection: projection,
+        })
+        .toArray();
+
+      const partnerUserData = [];
+
+      const userProjection = {
+        _id: 1,
+        name: 1,
+        profileImage: 1,
+      };
+
+      for (const part of result) {
+        let partnerId;
+        if (userInfo === "user") {
+          partnerId = new ObjectId(part.partner);
+        } else {
+          partnerId = new ObjectId(part.userId);
+        }
+
+        const userQuery = { _id: partnerId };
+        const userData = await usersCollection.findOne(userQuery, {
+          projection: userProjection,
+        });
+
+        if (userData) {
+          userData.metId = part._id;
+          userData.metDate = part.metDate;
+          partnerUserData.push(userData);
+        }
+      }
+      return partnerUserData;
+    }
+
+    app.get("/sendReqPending/:id", async (req, res) => {
+      const id = req.params.id;
+      const query = { userId: id, status: "pending" };
+      const result = await getInfoData(query, "user");
+      res.send(result);
+    });
+
+    app.get("/getReqPending/:id", async (req, res) => {
+      const id = req.params.id;
+      const query = { partner: id, status: "pending" };
+      const result = await getInfoData(query, "partner");
+      res.send(result);
+    });
+
+    app.get("/reqAccept/:id", async (req, res) => {
+      const id = req.params.id;
+      const userQuery = { userId: id, status: "accept" };
+      const partnerQuery = { partner: id, status: "accept" };
+      const userResult = await getInfoData(userQuery, "user");
+      const partnerResult = await getInfoData(partnerQuery, "partner");
+      const result = userResult.concat(partnerResult);
+      res.send(result);
+    });
+
+    async function handleMetStatus(req, res) {
+      const id = req.params.id;
+      const detMet = req.body;
+
+      const filter = { _id: new ObjectId(id) };
+      const option = { upsert: true };
+      const setCls = {
+        $set: {
+          status: detMet.status,
+        },
+      };
+
+      const result = await meetCollection.updateOne(filter, setCls, option);
+      res.send(result);
+    }
+
+    app.put("/deleteMet/:id", handleMetStatus);
+    app.put("/acceptMet/:id", handleMetStatus);
 
     //if any issue comment this line.
     await client.connect();
