@@ -7,7 +7,7 @@ const jwt = require("jsonwebtoken");
 const port = process.env.PORT || 5000;
 const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 const stripe = require("stripe")(process.env.PAYMENT_KEY);
-
+const schedule = require("node-schedule");
 // middleware
 app.use(cors());
 app.use(express.json());
@@ -713,24 +713,34 @@ async function run() {
                 totalRevenue: { $sum: "$order.price" },
               },
             },
+          ])
+          .toArray(),
+        paymentHistoryCollection
+          .aggregate([
+            {
+              $match: {
+                paymentDate: {
+                  $gte: firstDayOfMonth,
+                  $lte: lastDayOfMonth,
+                },
+              },
+            },
+            {
+              $group: {
+                _id: null,
+                totalPayments: { $sum: "$price" },
+              },
+            },
+          ])
+          .toArray(),
+      ]);
 
-          },
-        },
-        {
-          $group: {
-            _id: null,
-            totalPayments: { $sum: '$price' },
-          },
-        },
-      ]).toArray(),
-    ]);
+      const monthlyRevenue = result[0][0]?.totalRevenue || 0;
+      const monthlyPayments = result[1][0]?.totalPayments || 0;
+      const netMonthlyRevenue = monthlyRevenue - monthlyPayments;
+      res.send({ monthlyRevenue, monthlyPayments, netMonthlyRevenue });
+    });
 
-    const monthlyRevenue = result[0][0]?.totalRevenue || 0;
-    const monthlyPayments = result[1][0]?.totalPayments || 0;
-    const netMonthlyRevenue = monthlyRevenue - monthlyPayments;
-    res.send({ monthlyRevenue, monthlyPayments, netMonthlyRevenue })
-
-    })
     app.get("/userStats/:email",async(req,res)=>{
       const email = req.params.email
       const users =await usersCollection.estimatedDocumentCount();
