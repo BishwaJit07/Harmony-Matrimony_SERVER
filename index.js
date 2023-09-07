@@ -384,9 +384,17 @@ async function run() {
     });
 
     app.get("/authority", async (req, res) => {
-      const result = await authorityCollection.find().toArray();
+      const search = req.query.search;
+      const query = {name : { $regex : search, $options : 'i'}}
+      const result = await authorityCollection.find(query).toArray();
       return res.send(result);
     });
+    app.delete('/deleteUser/:id', async(req, res) =>{
+      const id = req.params.id;
+      const filter = {_id: new ObjectId(id)};
+      const result = await usersCollection.deleteOne(filter);
+      return res.send(result)
+    })
     app.patch("/makeApprove/:id", async (req, res) => {
       const id = req.params.id;
       const filter = { _id: new ObjectId(id) };
