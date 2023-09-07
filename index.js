@@ -8,12 +8,10 @@ const port = process.env.PORT || 5000;
 const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 const stripe = require("stripe")(process.env.PAYMENT_KEY);
 const schedule = require("node-schedule");
+
 // middleware
 app.use(cors());
 app.use(express.json());
-
-
-
 
 const verifyJWT = (req, res, next) => {
   const authorization = req.headers.authorization;
@@ -67,36 +65,25 @@ async function run() {
     // Connect the client to the server	(optional starting in v4.7)
     // await client.connect();
 
-    const usersCollection = client.db("SoulMate-Matrimony").collection("users");
-    const coupleCollection = client
-      .db("SoulMate-Matrimony")
-      .collection("CoupleData");
-    const blogsCollection = client.db("SoulMate-Matrimony").collection("blogs");
+    function getCollection(collectionName) {
+      return client.db("SoulMate-Matrimony").collection(collectionName);
+    }
 
-    const userVerification = client
-      .db("SoulMate-Matrimony")
-      .collection("userVerification");
-    const bookedServiceCollection = client
-      .db("SoulMate-Matrimony")
-      .collection("bookedService");
-    const paymentHistoryCollection = client
-      .db("SoulMate-Matrimony")
-      .collection("paymentHistory");
-
-    const orderCollection = client.db("SoulMate-Matrimony").collection("order");
-
-
+    const usersCollection = getCollection("users");
+    const authorityCollection = getCollection("authority");
+    const coupleCollection = getCollection("CoupleData");
+    const blogsCollection = getCollection("blogs");
+    const userVerification = getCollection("userVerification");
+    const bookedServiceCollection = getCollection("bookedService");
+    const paymentHistoryCollection = getCollection("paymentHistory");
+    const orderCollection = getCollection("order");
+    const reviewCollection = getCollection("review");
+    const teamMemberCollection = getCollection("meetourteam");
     // JWt
-
-    const contactCollection = client
-      .db("SoulMate-Matrimony")
-      .collection("contacts");
-    const serviceCollection = client
-      .db("SoulMate-Matrimony")
-      .collection("services");
-    const statusCollection = client
-      .db("SoulMate-Matrimony")
-      .collection("statusPost");
+    const contactCollection = getCollection("contacts");
+    const serviceCollection = getCollection("services");
+    const statusCollection = getCollection("statusPost");
+    const meetCollection = getCollection("setMeeting");
 
     // JWt
     app.post("/jwt", (req, res) => {
@@ -247,7 +234,7 @@ async function run() {
           age: updateInfo.age,
           height: updateInfo.height,
           weight: updateInfo.weight,
-          marital_status: updateInfo.marital_status,
+          marital_status: updateInfo.marital_Status,
           gender: updateInfo.gender,
           religion: updateInfo.religion,
           profile: updateInfo.profileFor,
@@ -316,8 +303,23 @@ async function run() {
       const result = await usersCollection.updateOne(query, updateDoc, options);
       res.send(result);
     });
-
     app.put("/update5", async (req, res) => {
+      const id = req.body.id;
+      const query = { _id: new ObjectId(id) };
+      const updateInfo = req.body;
+      const updateDoc = {
+        $set: {
+          profile_complete: updateInfo.profile_complete,
+          aboutMe: updateInfo.aboutMe,
+          interests: updateInfo.hobbies,
+        },
+      };
+      const options = { upsert: true };
+      const result = await usersCollection.updateOne(query, updateDoc, options);
+      res.send(result);
+    });
+
+    app.put("/update7", async (req, res) => {
       const id = req.body.id;
       const query = { _id: new ObjectId(id) };
       const updateInfo = req.body;
@@ -361,7 +363,6 @@ async function run() {
       const result = await usersCollection.insertOne(user);
       return res.send(result);
     });
-
 
     //  team Members
     app.get("/team", async (req, res) => {
@@ -417,7 +418,6 @@ async function run() {
       res.send(result);
     });
 
-
     //Couples related api
 
     app.get("/allCouple", async (req, res) => {
@@ -442,6 +442,19 @@ async function run() {
       const contactData = req.body;
       const result = await contactCollection.insertOne(contactData);
       res.send(result);
+    });
+
+    //  user review
+    app.get("/reviews", async (req, res) => {
+      const result = await reviewCollection.find().toArray();
+      return res.send(result);
+    });
+
+    app.post("/reviews", async (req, res) => {
+      const newreview = req.body;
+      console.log(newreview);
+      const result = await reviewCollection.insertOne(newstory);
+      return res.send(result);
     });
 
     // get photography services data
@@ -548,6 +561,25 @@ async function run() {
       return res.send(result);
     });
 
+    app.get("/blogsLatest", async (req, res) => {
+      const query = {};
+      sortBy = { _id: -1 };
+      const result = await blogsCollection.find(query).sort(sortBy).toArray();
+      return res.send(result);
+    });
+
+    app.patch("/blogss/:id", async (req, res) => {
+      const id = req.params.id;
+      const filter = { _id: new ObjectId(id) };
+      const updateDoc = {
+        $inc: {
+          react: -1,
+        },
+      };
+      const result = await blogsCollection.updateOne(filter, updateDoc);
+      res.send(result);
+    });
+
     //user status post
     app.get("/statusPosts", async (req, res) => {
       let query = {};
@@ -579,8 +611,8 @@ async function run() {
         total_amount: order.price,
         currency: "BDT",
         tran_id: train_id,
-        success_url: `https://harmony-matrimony-server.vercel.app/payment/success/${train_id}`,
-        fail_url: `https://harmony-matrimony-server.vercel.app/payment/fail/${train_id}`,
+        success_url: `https://soulmates-server-two.vercel.app/payment/success/${train_id}`,
+        fail_url: `https://soulmates-server-two.vercel.app/payment/fail/${train_id}`,
         cancel_url: "http://localhost:3030/cancel", //not Important
         ipn_url: "http://localhost:3030/ipn", //not Important
         shipping_method: "Courier",
@@ -633,8 +665,38 @@ async function run() {
           }
         );
         if (result.modifiedCount > 0) {
+          //update users plan
+          let visitCount = 0;
+          const query = { transaction: req.params.tranId };
+          const plan = await orderCollection.findOne(query);
+
+          if (plan.order.plan === "gold") {
+            visitCount = 20;
+          } else if (plan.order.plan === "platinum") {
+            visitCount = 30;
+          }
+
+          const nextMonth = new Date();
+          nextMonth.setMonth(nextMonth.getMonth() + 1);
+
+          const filter = { email: plan.order.email };
+          const option = { upsert: true };
+          const setCls = {
+            $set: {
+              expire: nextMonth,
+              plan: plan.order.plan,
+              profileVisit: visitCount,
+            },
+          };
+
+          const result = await usersCollection.updateOne(
+            filter,
+            setCls,
+            option
+          );
+
           res.redirect(
-            `https://harmony-matrimony-server.vercel.app/payment/success/${req.params.tranId}`
+            `https://soulmates-server-two.vercel.app/payment/success/${req.params.tranId}`
           );
         }
       });
@@ -644,7 +706,7 @@ async function run() {
         });
         if (result.deletedCount) {
           res.redirect(
-            `https://harmony-matrimony-server.vercel.app/payment/fail/${req.params.tranId}`
+            `https://soulmates-server-two.vercel.app/payment/fail/${req.params.tranId}`
           );
         }
       });
@@ -748,7 +810,7 @@ async function run() {
       const blogs=await blogsCollection.estimatedDocumentCount()
       const subscription=await orderCollection.estimatedDocumentCount()
       const servicesPackage=await paymentHistoryCollection.estimatedDocumentCount();
-      
+
         const user = await usersCollection.countDocuments({email});
         const order = await orderCollection.countDocuments({'order.email':email});
         const blog=await blogsCollection.countDocuments({email});
@@ -756,15 +818,81 @@ async function run() {
         const bookedServices=await bookedServiceCollection.estimatedDocumentCount();
         const package=await orderCollection.findOne({'order.email':email})
         const  services=await paymentHistoryCollection.find({email}).toArray()
-        
-       
+
+
         res.send({
           users,user,blogs,blog,order,bookedService,bookedServices,package,services,subscription,coupleDate
         })
     })
-  
+    //user plan set
+    app.get("/userPlan", async (req, res) => {
+      const email = req.query.email;
 
+      if (!email) {
+        return res.status(400).json({ error: "Email is required." });
+      }
 
+      const query = { email: email };
+      const result = await usersCollection.findOne(query);
+
+      if (!result) {
+        return res.status(404).json({ error: "User not found." });
+      }
+
+      const planData = {
+        userEmail: result.email,
+        userPlan: result.plan,
+        profileVisit: result.profileVisit,
+      };
+
+      res.send(planData);
+    });
+
+    app.put("/profileVisit", async (req, res) => {
+      const filter = { email: req.query.user };
+      const option = { upsert: true };
+      const setCls = {
+        $inc: {
+          profileVisit: -1,
+        },
+      };
+
+      const result = await usersCollection.updateOne(filter, setCls, option);
+      res.send(result);
+    });
+
+    //using node-schedule part
+    const updateDays = async (filterPlan, increment) => {
+      const filter = { plan: filterPlan };
+      const option = { upsert: true };
+      const setCls = {
+        $set: {
+          profileVisit: increment,
+        },
+      };
+      const result = await usersCollection.updateMany(filter, setCls, option);
+    };
+
+    const updateMonths = async (planItm) => {
+      const currentTime = new Date();
+      const query = { plan: planItm, expire: { $lte: currentTime } };
+      const objects = await usersCollection.find(query).toArray();
+
+      for (const obj of objects) {
+        await usersCollection.updateOne(
+          { _id: obj._id },
+          { $set: { plan: "free", profileVisit: 50, expire: new Date() } }
+        );
+      }
+    };
+
+    schedule.scheduleJob("* 1 * * *", async () => {
+      await updateDays("gold", 120);
+      await updateDays("platinum", 130);
+      await updateMonths("gold");
+      await updateMonths("platinum");
+      console.log("schedule Running....");
+    });
 
     //set meeting
     app.get("/userPlanInfo", async (req, res) => {
