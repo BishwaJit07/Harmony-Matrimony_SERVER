@@ -611,8 +611,8 @@ async function run() {
         total_amount: order.price,
         currency: "BDT",
         tran_id: train_id,
-        success_url: `https://soulmate-matrimony.netlify.app/payment/success/${train_id}`,
-        fail_url: `https://soulmate-matrimony.netlify.app/payment/fail/${train_id}`,
+        success_url: `https://soulmates-server-two.vercel.app/payment/success/${train_id}`,
+        fail_url: `https://soulmates-server-two.vercel.app/payment/fail/${train_id}`,
         cancel_url: "http://localhost:3030/cancel", //not Important
         ipn_url: "http://localhost:3030/ipn", //not Important
         shipping_method: "Courier",
@@ -696,7 +696,7 @@ async function run() {
           );
 
           res.redirect(
-            `https://soulmate-matrimony.netlify.app//payment/success/${req.params.tranId}`
+            `https://soulmates-server-two.vercel.app/payment/success/${req.params.tranId}`
           );
         }
       });
@@ -706,7 +706,7 @@ async function run() {
         });
         if (result.deletedCount) {
           res.redirect(
-            `https://soulmate-matrimony.netlify.app/payment/fail/${req.params.tranId}`
+            `https://soulmates-server-two.vercel.app/payment/fail/${req.params.tranId}`
           );
         }
       });
