@@ -221,6 +221,17 @@ async function run() {
       const result = await usersCollection.findOne(query);
       res.send(result);
     });
+    app.patch('/userVerify/:email', async(req, res) =>{
+      const email = req.query.email;
+      const query = {email : email };
+      const updateDoc = {
+        $set: {
+          profile_complete: 100,
+        },
+      };
+      const result = await usersCollection.updateOne(query, updateDoc);
+      res.send(result);
+    })
 
     //update user data
     app.put("/update1", async (req, res) => {
@@ -417,6 +428,12 @@ async function run() {
       const result = await authorityCollection.updateOne(filter, updateDoc);
       res.send(result);
     });
+
+    // verify Related apis
+    app.get('/verifyUser', async(req, res) =>{
+      const result = await userVerification.find().toArray();
+      return res.send(result);
+    })
 
     //Couples related api
 
