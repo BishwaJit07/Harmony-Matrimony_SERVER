@@ -232,6 +232,17 @@ async function run() {
       const result = await usersCollection.updateOne(query, updateDoc);
       res.send(result);
     })
+    app.patch('/userVerifyCancle/:email', async(req, res) =>{
+      const email = req.query.email;
+      const query = {email : email };
+      const updateDoc = {
+        $set: { 
+          interests: denied,
+        },
+      };
+      const result = await usersCollection.updateOne(query, updateDoc);
+      res.send(result);
+    })
 
     //update user data
     app.put("/update1", async (req, res) => {
