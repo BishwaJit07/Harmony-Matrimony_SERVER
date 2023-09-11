@@ -245,7 +245,7 @@ async function run() {
           age: updateInfo.age,
           height: updateInfo.height,
           weight: updateInfo.weight,
-          marital_status: updateInfo.maritalStatus,
+          marital_status: updateInfo.marital_Status,
           gender: updateInfo.gender,
           religion: updateInfo.religion,
           profile: updateInfo.profileFor,
@@ -820,6 +820,27 @@ async function run() {
       res.send({ monthlyRevenue, monthlyPayments, netMonthlyRevenue });
     });
 
+    app.get("/userStats/:email",async(req,res)=>{
+      const email = req.params.email
+      const users =await usersCollection.estimatedDocumentCount();
+      const coupleDate= await coupleCollection.estimatedDocumentCount();
+      const blogs=await blogsCollection.estimatedDocumentCount()
+      const subscription=await orderCollection.estimatedDocumentCount()
+      const servicesPackage=await paymentHistoryCollection.estimatedDocumentCount();
+
+        const user = await usersCollection.countDocuments({email});
+        const order = await orderCollection.countDocuments({'order.email':email});
+        const blog=await blogsCollection.countDocuments({email});
+        const bookedService=await bookedServiceCollection.countDocuments({email});
+        const bookedServices=await bookedServiceCollection.estimatedDocumentCount();
+        const package=await orderCollection.findOne({'order.email':email})
+        const  services=await paymentHistoryCollection.find({email}).toArray()
+
+
+        res.send({
+          users,user,blogs,blog,order,bookedService,bookedServices,package,services,subscription,coupleDate
+        })
+    })
     //user plan set
     app.get("/userPlan", async (req, res) => {
       const email = req.query.email;
