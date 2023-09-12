@@ -221,9 +221,9 @@ async function run() {
       const result = await usersCollection.findOne(query);
       res.send(result);
     });
-    app.patch('/userVerify/:email', async(req, res) =>{
+    app.patch("/userVerify/:email", async (req, res) => {
       const email = req.query.email;
-      const query = {email : email };
+      const query = { email: email };
       const updateDoc = {
         $set: {
           profile_complete: 100,
@@ -231,7 +231,7 @@ async function run() {
       };
       const result = await usersCollection.updateOne(query, updateDoc);
       res.send(result);
-    })
+    });
 
     //update user data
     app.put("/update1", async (req, res) => {
@@ -396,16 +396,16 @@ async function run() {
 
     app.get("/authority", async (req, res) => {
       const search = req.query.search;
-      const query = {name : { $regex : search, $options : 'i'}}
+      const query = { name: { $regex: search, $options: "i" } };
       const result = await authorityCollection.find(query).toArray();
       return res.send(result);
     });
-    app.delete('/deleteUser/:id', async(req, res) =>{
+    app.delete("/deleteUser/:id", async (req, res) => {
       const id = req.params.id;
-      const filter = {_id: new ObjectId(id)};
+      const filter = { _id: new ObjectId(id) };
       const result = await usersCollection.deleteOne(filter);
-      return res.send(result)
-    })
+      return res.send(result);
+    });
     app.patch("/makeApprove/:id", async (req, res) => {
       const id = req.params.id;
       const filter = { _id: new ObjectId(id) };
@@ -430,10 +430,10 @@ async function run() {
     });
 
     // verify Related apis
-    app.get('/verifyUser', async(req, res) =>{
+    app.get("/verifyUser", async (req, res) => {
       const result = await userVerification.find().toArray();
       return res.send(result);
-    })
+    });
 
     //Couples related api
 
@@ -820,27 +820,42 @@ async function run() {
       res.send({ monthlyRevenue, monthlyPayments, netMonthlyRevenue });
     });
 
-    app.get("/userStats/:email",async(req,res)=>{
-      const email = req.params.email
-      const users =await usersCollection.estimatedDocumentCount();
-      const coupleDate= await coupleCollection.estimatedDocumentCount();
-      const blogs=await blogsCollection.estimatedDocumentCount()
-      const subscription=await orderCollection.estimatedDocumentCount()
-      const servicesPackage=await paymentHistoryCollection.estimatedDocumentCount();
+    app.get("/userStats/:email", async (req, res) => {
+      const email = req.params.email;
+      const users = await usersCollection.estimatedDocumentCount();
+      const coupleDate = await coupleCollection.estimatedDocumentCount();
+      const blogs = await blogsCollection.estimatedDocumentCount();
+      const subscription = await orderCollection.estimatedDocumentCount();
+      const servicesPackage =
+        await paymentHistoryCollection.estimatedDocumentCount();
 
-        const user = await usersCollection.countDocuments({email});
-        const order = await orderCollection.countDocuments({'order.email':email});
-        const blog=await blogsCollection.countDocuments({email});
-        const bookedService=await bookedServiceCollection.countDocuments({email});
-        const bookedServices=await bookedServiceCollection.estimatedDocumentCount();
-        const package=await orderCollection.findOne({'order.email':email})
-        const  services=await paymentHistoryCollection.find({email}).toArray()
+      const user = await usersCollection.countDocuments({ email });
+      const order = await orderCollection.countDocuments({
+        "order.email": email,
+      });
+      const blog = await blogsCollection.countDocuments({ email });
+      const bookedService = await bookedServiceCollection.countDocuments({
+        email,
+      });
+      const bookedServices =
+        await bookedServiceCollection.estimatedDocumentCount();
+      const package = await orderCollection.findOne({ "order.email": email });
+      const services = await paymentHistoryCollection.find({ email }).toArray();
 
-
-        res.send({
-          users,user,blogs,blog,order,bookedService,bookedServices,package,services,subscription,coupleDate
-        })
-    })
+      res.send({
+        users,
+        user,
+        blogs,
+        blog,
+        order,
+        bookedService,
+        bookedServices,
+        package,
+        services,
+        subscription,
+        coupleDate,
+      });
+    });
     //user plan set
     app.get("/userPlan", async (req, res) => {
       const email = req.query.email;
@@ -1034,6 +1049,86 @@ async function run() {
 
     app.put("/deleteMet/:id", handleMetStatus);
     app.put("/acceptMet/:id", handleMetStatus);
+
+    //make fav
+    app.get("/showFlowing/:id", async (req, res) => {
+      const id = req.params.id;
+      const query = { userId: id };
+      const result = await favUserCollection.findOne(query);
+      return res.send(result);
+    });
+
+    app.get("/showFlowers/:id", async (req, res) => {
+      const id = req.params.id;
+      const query = { "favUser.favId": id };
+      const result = await favUserCollection.find(query).toArray();
+      return res.send(result);
+    });
+
+    app.get("/disableFav/:id/:favID", async (req, res) => {
+      const id = req.params.id;
+      const favID = req.params.favID;
+      const query = { userId: id, "favUser.favId": favID };
+      const result = await favUserCollection.findOne(query);
+      return res.send(result);
+    });
+
+    app.post("/setFav/:id", async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) };
+      const projection = {
+        _id: 0,
+        name: 1,
+        profileImage: 1,
+      };
+
+      const user = await usersCollection.findOne(query, {
+        projection: projection,
+      });
+
+      const setFav = req.body;
+      const favt = {
+        userId: id,
+        userName: user.name,
+        userImg: user.profileImage,
+        favUser: [setFav],
+      };
+      const result = await favUserCollection.insertOne(favt);
+      return res.send(result);
+    });
+
+    app.put("/makeFav/:id", async (req, res) => {
+      const id = req.params.id;
+      const setFav = req.body;
+      const query = { userId: id };
+      const existResult = await favUserCollection.findOne(query);
+      existResult.favUser.push(setFav);
+
+      const filter = { userId: id };
+      const option = { upsert: true };
+      const setCls = {
+        $set: {
+          favUser: existResult.favUser,
+        },
+      };
+
+      const result = await favUserCollection.updateOne(filter, setCls, option);
+      res.send(result);
+    });
+
+    app.put("/makeUnfollow/:id", async (req, res) => {
+      const id = req.params.id;
+      const unfollow = req.body;
+      const filter = { userId: id };
+      const option = { upsert: true };
+      const setCls = {
+        $pull: {
+          favUser: unfollow,
+        },
+      };
+      const result = await favUserCollection.updateOne(filter, setCls, option);
+      res.send(result);
+    });
 
     //if any issue comment this line.
     await client.connect();
