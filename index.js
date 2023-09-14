@@ -110,30 +110,31 @@ async function run() {
 
 
     // stripe payment
-    app.post("/stripe-payment", async (req, res) => {
-      const { price } = req.body;
-      const amount = price * 100;
 
+    // app.post("/stripe-payment", async (req, res) => {
+    //   const { price } = req.body;
+    //   const amount = price * 100;
+    //   console.log(price, amount);
 
-      try {
-        const paymentIntent = await stripe.paymentIntent.create({
-          amount: amount,
-          currency: "usd",
-          payment_method_types: ["card"],
-        });
+    //   try {
+    //     const paymentIntent = await stripe.paymentIntent.create({
+    //       amount: amount,
+    //       currency: "usd",
+    //       payment_method_types: ["card"],
+    //     });
 
-        res.status(200).json({
-          clientSecret: paymentIntent.client_secret,
-        });
-      } catch (error) {
-        console.log("Error creating payment intent:", error.message);
-        res.status(500).json({ error: "Failed to create payment intent" });
-      }
-    });
+    //     res.status(200).json({
+    //       clientSecret: paymentIntent.client_secret,
+    //     });
+    //   } catch (error) {
+    //     console.log("Error creating payment intent:", error.message);
+    //     res.status(500).json({ error: "Failed to create payment intent" });
+    //   }
+    // });
 
     app.post("/create-payment-intent", async (req, res) => {
       const { price } = req.body;
-      const amount = price * 100;
+      const amount = price;
 
       // console.log(price, amount);
       // res.send({
@@ -159,7 +160,15 @@ async function run() {
     app.post("/save-payments", async (req, res) => {
       const payment = req.body;
       const result = await paymentHistoryCollection.insertOne(payment);
-      res.send(result);
+
+      if (result.insertedId) {
+        const query = { _id: result.insertedId };
+        const plan = await paymentHistoryCollection.findOne(query);
+        if (plan.plan) {
+          await updateUserPlanSystem(plan);
+          res.send(result);
+        }
+      }
     });
 
     // admin middleware
@@ -634,8 +643,8 @@ async function run() {
         total_amount: order.price,
         currency: "BDT",
         tran_id: train_id,
-        success_url: `https://soulmates-server-two.vercel.app/payment/success/${train_id}`,
-        fail_url: `https://soulmates-server-two.vercel.app/payment/fail/${train_id}`,
+        success_url: `http://localhost:5000/payment/success/${train_id}`,
+        fail_url: `http://localhost:5000/payment/fail/${train_id}`,
         cancel_url: "http://localhost:3030/cancel", //not Important
         ipn_url: "http://localhost:3030/ipn", //not Important
         shipping_method: "Courier",
@@ -689,37 +698,14 @@ async function run() {
         );
         if (result.modifiedCount > 0) {
           //update users plan
-          let visitCount = 0;
+
           const query = { transaction: req.params.tranId };
           const plan = await orderCollection.findOne(query);
 
-          if (plan.order.plan === "gold") {
-            visitCount = 20;
-          } else if (plan.order.plan === "platinum") {
-            visitCount = 30;
-          }
-
-          const nextMonth = new Date();
-          nextMonth.setMonth(nextMonth.getMonth() + 1);
-
-          const filter = { email: plan.order.email };
-          const option = { upsert: true };
-          const setCls = {
-            $set: {
-              expire: nextMonth,
-              plan: plan.order.plan,
-              profileVisit: visitCount,
-            },
-          };
-
-          const result = await usersCollection.updateOne(
-            filter,
-            setCls,
-            option
-          );
+          await updateUserPlanSystem(plan.order);
 
           res.redirect(
-            `https://soulmates-server-two.vercel.app/payment/success/${req.params.tranId}`
+            `http://localhost:5173/payment/success/${req.params.tranId}`
           );
         }
       });
@@ -729,7 +715,7 @@ async function run() {
         });
         if (result.deletedCount) {
           res.redirect(
-            `https://soulmates-server-two.vercel.app/payment/fail/${req.params.tranId}`
+            `http://localhost:5173/payment/fail/${req.params.tranId}`
           );
         }
       });
@@ -899,6 +885,33 @@ async function run() {
       res.send(result);
     });
 
+    //user plan system
+    async function updateUserPlanSystem(plan) {
+      let visitCount;
+
+      if (plan.plan === "lovebirds") {
+        visitCount = 10;
+      } else if (plan.plan === "premium") {
+        visitCount = 30;
+      } else if (plan.plan === "ultimate") {
+        visitCount = 70;
+      }
+
+      const nextMonth = new Date();
+      nextMonth.setMonth(nextMonth.getMonth() + 1);
+      const filter = { _id: new ObjectId(plan.userId) };
+      const option = { upsert: true };
+      const setCls = {
+        $set: {
+          expire: nextMonth,
+          plan: plan.plan,
+          profileVisit: visitCount,
+        },
+      };
+
+      await usersCollection.updateOne(filter, setCls, option);
+    }
+
     //using node-schedule part
     const updateDays = async (filterPlan, increment) => {
       const filter = { plan: filterPlan };
@@ -925,11 +938,13 @@ async function run() {
     };
 
     schedule.scheduleJob("* 1 * * *", async () => {
-      await updateDays("gold", 120);
-      await updateDays("platinum", 130);
-      await updateMonths("gold");
-      await updateMonths("platinum");
-      console.log("schedule Running....");
+      await updateDays("lovebirds", 100);
+      await updateDays("premium", 100);
+      await updateDays("ultimate", 100);
+
+      await updateMonths("lovebirds");
+      await updateMonths("premium");
+      await updateMonths("ultimate");
     });
 
     //set meeting
@@ -1027,27 +1042,53 @@ async function run() {
       res.send(result);
     });
 
-    app.get("/reqAccept/:id", async (req, res) => {
+    //new polis & poposal handle
+    async function handleStatusUpdate(req, res, status) {
       const id = req.params.id;
-      const userQuery = { userId: id, status: "accept" };
-      const partnerQuery = { partner: id, status: "accept" };
+      const userQuery = { userId: id, status };
+      const partnerQuery = { partner: id, status };
       const userResult = await getInfoData(userQuery, "user");
       const partnerResult = await getInfoData(partnerQuery, "partner");
       const result = userResult.concat(partnerResult);
       res.send(result);
+    }
+
+    app.get("/reqAccept/:id", async (req, res) => {
+      await handleStatusUpdate(req, res, "accept");
+    });
+
+    app.get("/getProposal/:id", async (req, res) => {
+      await handleStatusUpdate(req, res, "proposed");
+    });
+
+    app.get("/getAccept/:id", async (req, res) => {
+      await handleStatusUpdate(req, res, "proposal accept");
+    });
+
+    app.get("/getReject/:id", async (req, res) => {
+      await handleStatusUpdate(req, res, "proposal reject");
     });
 
     async function handleMetStatus(req, res) {
       const id = req.params.id;
       const detMet = req.body;
-
       const filter = { _id: new ObjectId(id) };
       const option = { upsert: true };
-      const setCls = {
-        $set: {
-          status: detMet.status,
-        },
-      };
+      let setCls = {};
+      if (detMet.setby) {
+        setCls = {
+          $set: {
+            setBy: detMet.setby,
+            status: detMet.status,
+          },
+        };
+      } else {
+        setCls = {
+          $set: {
+            status: detMet.status,
+          },
+        };
+      }
 
       const result = await meetCollection.updateOne(filter, setCls, option);
       res.send(result);
@@ -1055,6 +1096,7 @@ async function run() {
 
     app.put("/deleteMet/:id", handleMetStatus);
     app.put("/acceptMet/:id", handleMetStatus);
+    app.put("/setProposal/:id", handleMetStatus);
 
     //make fav
     app.get("/showFlowing/:id", async (req, res) => {
