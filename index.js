@@ -6,12 +6,30 @@ require("dotenv").config();
 const jwt = require("jsonwebtoken");
 const port = process.env.PORT || 5000;
 const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
+const mongoose = require("mongoose");
 const stripe = require("stripe")(process.env.PAYMENT_KEY);
 const schedule = require("node-schedule");
+const router = express.Router();
+const conversationRoute = require("./routes/conversations");
+const messagesRoute = require("./routes/messages");
+
+
+
+mongoose.connect(
+  process.env.MONGO_URL,
+  { useNewUrlParser: true, useUnifiedTopology: true },
+  () => {
+    console.log("Connected to MongoDB");
+  }
+);
 
 // middleware
 app.use(cors());
 app.use(express.json());
+
+app.use("/conversations", conversationRoute);
+app.use("/messages", messagesRoute);
+
 
 const verifyJWT = (req, res, next) => {
   const authorization = req.headers.authorization;
@@ -55,16 +73,11 @@ const client = new MongoClient(uri, {
 });
 
 const store_id = process.env.SSLID;
-// soulm64e6111916384
 const store_passwd = process.env.SSLPASS;
-// soulm64e6111916384@ssl
-const is_live = false; //true for live, false for sandbox
+const is_live = false; 
 
 async function run() {
   try {
-    // Connect the client to the server	(optional starting in v4.7)
-    // await client.connect();
-
     function getCollection(collectionName) {
       return client.db("SoulMate-Matrimony").collection(collectionName);
     }
@@ -79,7 +92,6 @@ async function run() {
     const orderCollection = getCollection("order");
     const reviewCollection = getCollection("review");
     const teamMemberCollection = getCollection("meetourteam");
-    // JWt
     const contactCollection = getCollection("contacts");
     const serviceCollection = getCollection("services");
     const statusCollection = getCollection("statusPost");
@@ -96,11 +108,12 @@ async function run() {
 
     // PAYMENT_KEY=sk_test_51Ni8a5GFYl3GiivUgPzTNfNymFHldn7Wbmsgin0vFLUwo1VpXbjHO7DwTod7w77vCEy3HLyj3Mc09MfuN5ereJRZ00AGjsKM6l
 
+
     // stripe payment
     app.post("/stripe-payment", async (req, res) => {
       const { price } = req.body;
       const amount = price * 100;
-      console.log(price, amount);
+
 
       try {
         const paymentIntent = await stripe.paymentIntent.create({
@@ -145,7 +158,6 @@ async function run() {
     // post stripe payment in database
     app.post("/save-payments", async (req, res) => {
       const payment = req.body;
-      console.log(payment);
       const result = await paymentHistoryCollection.insertOne(payment);
       res.send(result);
     });
@@ -183,7 +195,6 @@ async function run() {
     //admin verification
     app.get("/users/admin/:email", verifyJWT, async (req, res) => {
       const email = req.params.email;
-      console.log(email);
       if (req.decoded.email !== email) {
         res.send({ admin: false });
       }
@@ -209,7 +220,6 @@ async function run() {
 
     app.get("/userInfo", verifyJWT, async (req, res) => {
       const email = req.query.email;
-      console.log(email);
       if (!email) {
         res.send([]);
       }
@@ -264,7 +274,6 @@ async function run() {
       const id = req.body.id;
       const query = { _id: new ObjectId(id) };
       const updateInfo = req.body;
-      console.log(updateInfo);
       const updateDoc = {
         $set: {
           profile_complete: updateInfo.profile_complete,
@@ -284,7 +293,6 @@ async function run() {
       const id = req.body.id;
       const query = { _id: new ObjectId(id) };
       const updateInfo = req.body;
-      console.log(updateInfo);
       const updateDoc = {
         $set: {
           profile_complete: updateInfo.profile_complete,
@@ -303,7 +311,6 @@ async function run() {
       const id = req.body.id;
       const query = { _id: new ObjectId(id) };
       const updateInfo = req.body;
-      console.log(updateInfo);
       const updateDoc = {
         $set: {
           profile_complete: updateInfo.profile_complete,
@@ -381,6 +388,7 @@ async function run() {
       return res.send(result);
     });
 
+
     app.post("/authority", async (req, res) => {
       const user = req.body;
       const query = { email: user.email };
@@ -444,7 +452,6 @@ async function run() {
 
     app.post("/allCouple", async (req, res) => {
       const newstory = req.body;
-      console.log(newstory);
       const result = await coupleCollection.insertOne(newstory);
       return res.send(result);
     });
@@ -469,7 +476,6 @@ async function run() {
 
     app.post("/reviews", async (req, res) => {
       const newreview = req.body;
-      console.log(newreview);
       const result = await reviewCollection.insertOne(newstory);
       return res.send(result);
     });
@@ -556,7 +562,7 @@ async function run() {
 
     app.get("/blogsDetails/:id", async (req, res) => {
       const id = req.params.id;
-      console.log(id);
+
       const query = { _id: new ObjectId(id) };
       const result = await blogsCollection.findOne(query);
       res.send(result);
