@@ -96,6 +96,7 @@ async function run() {
     const serviceCollection = getCollection("services");
     const statusCollection = getCollection("statusPost");
     const meetCollection = getCollection("setMeeting");
+    const favUserCollection = getCollection("favUser");
 
     // JWt
     app.post("/jwt", (req, res) => {
