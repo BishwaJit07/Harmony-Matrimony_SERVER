@@ -6,12 +6,27 @@ require("dotenv").config();
 const jwt = require("jsonwebtoken");
 const port = process.env.PORT || 5000;
 const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
+const mongoose = require("mongoose");
 const stripe = require("stripe")(process.env.PAYMENT_KEY);
 const schedule = require("node-schedule");
+const router = express.Router();
+const conversationRoute = require("./routes/conversations");
+const messagesRoute = require("./routes/messages");
+
+mongoose.connect(
+  process.env.MONGO_URL,
+  { useNewUrlParser: true, useUnifiedTopology: true },
+  () => {
+    console.log("Connected to MongoDB");
+  }
+);
 
 // middleware
 app.use(cors());
 app.use(express.json());
+
+app.use("/conversations", conversationRoute);
+app.use("/messages", messagesRoute);
 
 const verifyJWT = (req, res, next) => {
   const authorization = req.headers.authorization;
@@ -36,8 +51,9 @@ const verifyJWT = (req, res, next) => {
 
 // mongo db
 
-const uri = `mongodb+srv://${process.env.DB_User}:${process.env.DB_Pass}@cluster0.pmqtpdf.mongodb.net/?retryWrites=true&w=majority`;
+// const uri = `mongodb+srv://${process.env.DB_User}:${process.env.DB_Pass}@cluster0.pmqtpdf.mongodb.net/?retryWrites=true&w=majority`;
 
+const uri = `mongodb+srv://${process.env.DB_User}:${process.env.DB_Pass}@cluster0.ymw1jdy.mongodb.net/?retryWrites=true&w=majority&appName=AtlasApp`;
 // make a .env file and put this there -
 
 // DB_User = SoulMate-Matrimony
@@ -55,18 +71,13 @@ const client = new MongoClient(uri, {
 });
 
 const store_id = process.env.SSLID;
-// soulm64e6111916384
 const store_passwd = process.env.SSLPASS;
-// soulm64e6111916384@ssl
-const is_live = false; //true for live, false for sandbox
+const is_live = false;
 
 async function run() {
   try {
-    // Connect the client to the server	(optional starting in v4.7)
-    // await client.connect();
-
     function getCollection(collectionName) {
-      return client.db("SoulMate-Matrimony").collection(collectionName);
+      return client.db("SoulMate").collection(collectionName);
     }
 
     const usersCollection = getCollection("users");
@@ -79,11 +90,12 @@ async function run() {
     const orderCollection = getCollection("order");
     const reviewCollection = getCollection("review");
     const teamMemberCollection = getCollection("meetourteam");
-    // JWt
     const contactCollection = getCollection("contacts");
     const serviceCollection = getCollection("services");
     const statusCollection = getCollection("statusPost");
     const meetCollection = getCollection("setMeeting");
+    const favUserCollection = getCollection("favUser");
+    const setCoupleCollection = getCollection("setCouple");
 
     // JWt
     app.post("/jwt", (req, res) => {
@@ -97,30 +109,31 @@ async function run() {
     // PAYMENT_KEY=sk_test_51Ni8a5GFYl3GiivUgPzTNfNymFHldn7Wbmsgin0vFLUwo1VpXbjHO7DwTod7w77vCEy3HLyj3Mc09MfuN5ereJRZ00AGjsKM6l
 
     // stripe payment
-    app.post("/stripe-payment", async (req, res) => {
-      const { price } = req.body;
-      const amount = price * 100;
-      console.log(price, amount);
 
-      try {
-        const paymentIntent = await stripe.paymentIntent.create({
-          amount: amount,
-          currency: "usd",
-          payment_method_types: ["card"],
-        });
+    // app.post("/stripe-payment", async (req, res) => {
+    //   const { price } = req.body;
+    //   const amount = price * 100;
+    //   console.log(price, amount);
 
-        res.status(200).json({
-          clientSecret: paymentIntent.client_secret,
-        });
-      } catch (error) {
-        console.log("Error creating payment intent:", error.message);
-        res.status(500).json({ error: "Failed to create payment intent" });
-      }
-    });
+    //   try {
+    //     const paymentIntent = await stripe.paymentIntent.create({
+    //       amount: amount,
+    //       currency: "usd",
+    //       payment_method_types: ["card"],
+    //     });
+
+    //     res.status(200).json({
+    //       clientSecret: paymentIntent.client_secret,
+    //     });
+    //   } catch (error) {
+    //     console.log("Error creating payment intent:", error.message);
+    //     res.status(500).json({ error: "Failed to create payment intent" });
+    //   }
+    // });
 
     app.post("/create-payment-intent", async (req, res) => {
       const { price } = req.body;
-      const amount = price * 100;
+      const amount = price;
 
       // console.log(price, amount);
       // res.send({
@@ -145,9 +158,16 @@ async function run() {
     // post stripe payment in database
     app.post("/save-payments", async (req, res) => {
       const payment = req.body;
-      console.log(payment);
       const result = await paymentHistoryCollection.insertOne(payment);
-      res.send(result);
+
+      if (result.insertedId) {
+        const query = { _id: result.insertedId };
+        const plan = await paymentHistoryCollection.findOne(query);
+        if (plan.plan) {
+          await updateUserPlanSystem(plan);
+          res.send(result);
+        }
+      }
     });
 
     // admin middleware
@@ -183,7 +203,6 @@ async function run() {
     //admin verification
     app.get("/users/admin/:email", verifyJWT, async (req, res) => {
       const email = req.params.email;
-      console.log(email);
       if (req.decoded.email !== email) {
         res.send({ admin: false });
       }
@@ -209,7 +228,6 @@ async function run() {
 
     app.get("/userInfo", verifyJWT, async (req, res) => {
       const email = req.query.email;
-      console.log(email);
       if (!email) {
         res.send([]);
       }
@@ -221,9 +239,11 @@ async function run() {
       const result = await usersCollection.findOne(query);
       res.send(result);
     });
+
     app.patch('/userVerify/:email', async(req, res) =>{
       const email = req.params.email;
       const query = {email : email };
+
       const updateDoc = {
         $set: {
           profile_complete: 100,
@@ -231,6 +251,7 @@ async function run() {
       };
       const result = await usersCollection.updateOne(query, updateDoc);
       res.send(result);
+
     })
     app.put('/userCancle/:email', async(req, res) =>{
       const email = req.params.email;
@@ -239,11 +260,14 @@ async function run() {
       const updateDoc = {
         $set: { 
           verify: 'blocked',
+
         },
       };
       const result = await usersCollection.updateOne(query, updateDoc);
       res.send(result);
-    })
+
+    });
+
 
     //update user data
     app.put("/update1", async (req, res) => {
@@ -276,7 +300,6 @@ async function run() {
       const id = req.body.id;
       const query = { _id: new ObjectId(id) };
       const updateInfo = req.body;
-      console.log(updateInfo);
       const updateDoc = {
         $set: {
           profile_complete: updateInfo.profile_complete,
@@ -296,7 +319,6 @@ async function run() {
       const id = req.body.id;
       const query = { _id: new ObjectId(id) };
       const updateInfo = req.body;
-      console.log(updateInfo);
       const updateDoc = {
         $set: {
           profile_complete: updateInfo.profile_complete,
@@ -315,7 +337,6 @@ async function run() {
       const id = req.body.id;
       const query = { _id: new ObjectId(id) };
       const updateInfo = req.body;
-      console.log(updateInfo);
       const updateDoc = {
         $set: {
           profile_complete: updateInfo.profile_complete,
@@ -408,10 +429,11 @@ async function run() {
 
     app.get("/authority", async (req, res) => {
       const search = req.query.search;
-      const query = {name : { $regex : search, $options : 'i'}}
+      const query = { name: { $regex: search, $options: "i" } };
       const result = await authorityCollection.find(query).toArray();
       return res.send(result);
     });
+
     app.get('/profileData/:email', async(req, res) =>{
       const email = req.params.email;
       const filter = {email: email};
@@ -419,11 +441,12 @@ async function run() {
       return res.send(result)
     })
     app.delete('/deleteUser/:id', async(req, res) =>{
+
       const id = req.params.id;
-      const filter = {_id: new ObjectId(id)};
+      const filter = { _id: new ObjectId(id) };
       const result = await usersCollection.deleteOne(filter);
-      return res.send(result)
-    })
+      return res.send(result);
+    });
     app.patch("/makeApprove/:id", async (req, res) => {
       const id = req.params.id;
       const filter = { _id: new ObjectId(id) };
@@ -448,10 +471,12 @@ async function run() {
     });
 
     // verify Related apis
+
     app.get('/verifyUser', async(req, res) =>{
       const result = await userVerification.find().toArray();
       return res.send(result);
     })
+
 
     //Couples related api
 
@@ -462,7 +487,6 @@ async function run() {
 
     app.post("/allCouple", async (req, res) => {
       const newstory = req.body;
-      console.log(newstory);
       const result = await coupleCollection.insertOne(newstory);
       return res.send(result);
     });
@@ -487,7 +511,6 @@ async function run() {
 
     app.post("/reviews", async (req, res) => {
       const newreview = req.body;
-      console.log(newreview);
       const result = await reviewCollection.insertOne(newstory);
       return res.send(result);
     });
@@ -574,7 +597,7 @@ async function run() {
 
     app.get("/blogsDetails/:id", async (req, res) => {
       const id = req.params.id;
-      console.log(id);
+
       const query = { _id: new ObjectId(id) };
       const result = await blogsCollection.findOne(query);
       res.send(result);
@@ -615,6 +638,13 @@ async function run() {
       res.send(result);
     });
 
+    app.get("/profileData/:email", async (req, res) => {
+      const email = req.params.email;
+      const filter = { email: email };
+      const result = await authorityCollection.findOne(filter);
+      return res.send(result);
+    });
+
     //user status post
     app.get("/statusPosts", async (req, res) => {
       let query = {};
@@ -646,8 +676,8 @@ async function run() {
         total_amount: order.price,
         currency: "BDT",
         tran_id: train_id,
-        success_url: `https://soulmates-server-two.vercel.app/payment/success/${train_id}`,
-        fail_url: `https://soulmates-server-two.vercel.app/payment/fail/${train_id}`,
+        success_url: `https://harmony-matrimony-server.vercel.app/payment/success/${train_id}`,
+        fail_url: `https://harmony-matrimony-server.vercel.app/payment/fail/${train_id}`,
         cancel_url: "http://localhost:3030/cancel", //not Important
         ipn_url: "http://localhost:3030/ipn", //not Important
         shipping_method: "Courier",
@@ -701,37 +731,14 @@ async function run() {
         );
         if (result.modifiedCount > 0) {
           //update users plan
-          let visitCount = 0;
+
           const query = { transaction: req.params.tranId };
           const plan = await orderCollection.findOne(query);
 
-          if (plan.order.plan === "gold") {
-            visitCount = 20;
-          } else if (plan.order.plan === "platinum") {
-            visitCount = 30;
-          }
-
-          const nextMonth = new Date();
-          nextMonth.setMonth(nextMonth.getMonth() + 1);
-
-          const filter = { email: plan.order.email };
-          const option = { upsert: true };
-          const setCls = {
-            $set: {
-              expire: nextMonth,
-              plan: plan.order.plan,
-              profileVisit: visitCount,
-            },
-          };
-
-          const result = await usersCollection.updateOne(
-            filter,
-            setCls,
-            option
-          );
+          await updateUserPlanSystem(plan.order);
 
           res.redirect(
-            `https://soulmates-server-two.vercel.app/payment/success/${req.params.tranId}`
+            `http://localhost:5173/payment/success/${req.params.tranId}`
           );
         }
       });
@@ -741,7 +748,7 @@ async function run() {
         });
         if (result.deletedCount) {
           res.redirect(
-            `https://soulmates-server-two.vercel.app/payment/fail/${req.params.tranId}`
+            `http://localhost:5173/payment/fail/${req.params.tranId}`
           );
         }
       });
@@ -838,27 +845,42 @@ async function run() {
       res.send({ monthlyRevenue, monthlyPayments, netMonthlyRevenue });
     });
 
-    app.get("/userStats/:email",async(req,res)=>{
-      const email = req.params.email
-      const users =await usersCollection.estimatedDocumentCount();
-      const coupleDate= await coupleCollection.estimatedDocumentCount();
-      const blogs=await blogsCollection.estimatedDocumentCount()
-      const subscription=await orderCollection.estimatedDocumentCount()
-      const servicesPackage=await paymentHistoryCollection.estimatedDocumentCount();
+    app.get("/userStats/:email", async (req, res) => {
+      const email = req.params.email;
+      const users = await usersCollection.estimatedDocumentCount();
+      const coupleDate = await coupleCollection.estimatedDocumentCount();
+      const blogs = await blogsCollection.estimatedDocumentCount();
+      const subscription = await orderCollection.estimatedDocumentCount();
+      const servicesPackage =
+        await paymentHistoryCollection.estimatedDocumentCount();
 
-        const user = await usersCollection.countDocuments({email});
-        const order = await orderCollection.countDocuments({'order.email':email});
-        const blog=await blogsCollection.countDocuments({email});
-        const bookedService=await bookedServiceCollection.countDocuments({email});
-        const bookedServices=await bookedServiceCollection.estimatedDocumentCount();
-        const package=await orderCollection.findOne({'order.email':email})
-        const  services=await paymentHistoryCollection.find({email}).toArray()
+      const user = await usersCollection.countDocuments({ email });
+      const order = await orderCollection.countDocuments({
+        "order.email": email,
+      });
+      const blog = await blogsCollection.countDocuments({ email });
+      const bookedService = await bookedServiceCollection.countDocuments({
+        email,
+      });
+      const bookedServices =
+        await bookedServiceCollection.estimatedDocumentCount();
+      const package = await orderCollection.findOne({ "order.email": email });
+      const services = await paymentHistoryCollection.find({ email }).toArray();
 
-
-        res.send({
-          users,user,blogs,blog,order,bookedService,bookedServices,package,services,subscription,coupleDate
-        })
-    })
+      res.send({
+        users,
+        user,
+        blogs,
+        blog,
+        order,
+        bookedService,
+        bookedServices,
+        package,
+        services,
+        subscription,
+        coupleDate,
+      });
+    });
     //user plan set
     app.get("/userPlan", async (req, res) => {
       const email = req.query.email;
@@ -896,6 +918,33 @@ async function run() {
       res.send(result);
     });
 
+    //user plan system
+    async function updateUserPlanSystem(plan) {
+      let visitCount;
+
+      if (plan.plan === "lovebirds") {
+        visitCount = 10;
+      } else if (plan.plan === "premium") {
+        visitCount = 30;
+      } else if (plan.plan === "ultimate") {
+        visitCount = 70;
+      }
+
+      const nextMonth = new Date();
+      nextMonth.setMonth(nextMonth.getMonth() + 1);
+      const filter = { _id: new ObjectId(plan.userId) };
+      const option = { upsert: true };
+      const setCls = {
+        $set: {
+          expire: nextMonth,
+          plan: plan.plan,
+          profileVisit: visitCount,
+        },
+      };
+
+      await usersCollection.updateOne(filter, setCls, option);
+    }
+
     //using node-schedule part
     const updateDays = async (filterPlan, increment) => {
       const filter = { plan: filterPlan };
@@ -922,11 +971,13 @@ async function run() {
     };
 
     schedule.scheduleJob("* 1 * * *", async () => {
-      await updateDays("gold", 120);
-      await updateDays("platinum", 130);
-      await updateMonths("gold");
-      await updateMonths("platinum");
-      console.log("schedule Running....");
+      await updateDays("lovebirds", 100);
+      await updateDays("premium", 100);
+      await updateDays("ultimate", 100);
+
+      await updateMonths("lovebirds");
+      await updateMonths("premium");
+      await updateMonths("ultimate");
     });
 
     //set meeting
@@ -959,29 +1010,8 @@ async function run() {
     });
 
     async function getInfoData(paramQurey, userInfo) {
-      let projection = {};
-      if (userInfo === "user") {
-        projection = {
-          _id: 1,
-          partner: 1,
-          metDate: 1,
-        };
-      } else {
-        projection = {
-          _id: 1,
-          userId: 1,
-          metDate: 1,
-        };
-      }
-
-      const result = await meetCollection
-        .find(paramQurey, {
-          projection: projection,
-        })
-        .toArray();
-
+      const result = await meetCollection.find(paramQurey).toArray();
       const partnerUserData = [];
-
       const userProjection = {
         _id: 1,
         name: 1,
@@ -1004,6 +1034,7 @@ async function run() {
         if (userData) {
           userData.metId = part._id;
           userData.metDate = part.metDate;
+          userData.setBy = part.setBy;
           partnerUserData.push(userData);
         }
       }
@@ -1024,34 +1055,215 @@ async function run() {
       res.send(result);
     });
 
-    app.get("/reqAccept/:id", async (req, res) => {
+    //new polis & poposal handle
+    async function handleStatusUpdate(req, res, status) {
       const id = req.params.id;
-      const userQuery = { userId: id, status: "accept" };
-      const partnerQuery = { partner: id, status: "accept" };
+      const userQuery = { userId: id, status: status };
+      const partnerQuery = { partner: id, status: status };
       const userResult = await getInfoData(userQuery, "user");
       const partnerResult = await getInfoData(partnerQuery, "partner");
       const result = userResult.concat(partnerResult);
       res.send(result);
+    }
+
+    app.get("/reqAccept/:id", async (req, res) => {
+      await handleStatusUpdate(req, res, "accept");
+    });
+
+    app.get("/getProposal/:id", async (req, res) => {
+      await handleStatusUpdate(req, res, "proposed");
+    });
+
+    app.get("/getAccept/:id", async (req, res) => {
+      await handleStatusUpdate(req, res, "proposal accept");
+    });
+
+    app.get("/getReject/:id", async (req, res) => {
+      await handleStatusUpdate(req, res, "proposal reject");
     });
 
     async function handleMetStatus(req, res) {
       const id = req.params.id;
       const detMet = req.body;
-
       const filter = { _id: new ObjectId(id) };
+      const option = { upsert: true };
+      let setCls = {};
+      if (detMet.setby) {
+        setCls = {
+          $set: {
+            setBy: detMet.setby,
+            status: detMet.status,
+          },
+        };
+      } else {
+        setCls = {
+          $set: {
+            status: detMet.status,
+          },
+        };
+      }
+
+      const result = await meetCollection.updateOne(filter, setCls, option);
+      return result;
+    }
+
+    app.put("/deleteMet/:id", async (req, res) => {
+      const result = await handleMetStatus(req, res);
+      res.send(result);
+    });
+
+    app.put("/setProposal/:id", async (req, res) => {
+      const result = await handleMetStatus(req, res);
+      res.send(result);
+    });
+
+    async function findUserData(data) {
+      const usersProjection = {
+        _id: 1,
+        name: 1,
+        email: 1,
+        mobile: 1,
+        country: 1,
+      };
+
+      const user = await usersCollection.findOne(
+        { _id: new ObjectId(data.userId) },
+        {
+          projection: usersProjection,
+        }
+      );
+      const partner = await usersCollection.findOne(
+        { _id: new ObjectId(data.partner) },
+        {
+          projection: usersProjection,
+        }
+      );
+
+      let couple = {};
+      couple.partner1 = user;
+      couple.partner2 = partner;
+      couple.issueDate = new Date();
+      couple.status = "pending";
+
+      return await setCoupleCollection.insertOne(couple);
+    }
+
+    async function updateUserStatus(userId) {
+      const filter = { _id: new ObjectId(userId) };
       const option = { upsert: true };
       const setCls = {
         $set: {
-          status: detMet.status,
+          status: "pending",
         },
       };
 
-      const result = await meetCollection.updateOne(filter, setCls, option);
-      res.send(result);
+      return await usersCollection.updateOne(filter, setCls, option);
     }
 
-    app.put("/deleteMet/:id", handleMetStatus);
-    app.put("/acceptMet/:id", handleMetStatus);
+    app.put("/acceptMet/:id", async (req, res) => {
+      const id = req.params.id;
+      const result = await handleMetStatus(req, res);
+      if (result.modifiedCount > 0) {
+        const query = { _id: new ObjectId(id) };
+        const projection = {
+          userId: 1,
+          partner: 1,
+          metDate: 1,
+        };
+
+        const metData = await meetCollection.findOne(query, {
+          projection: projection,
+        });
+
+        const coupleResult = await findUserData(metData);
+
+        if (coupleResult.insertedId) {
+          await updateUserStatus(metData.userId);
+          await updateUserStatus(metData.partner);
+        }
+      }
+      res.send(result);
+    });
+
+    //make fav
+    app.get("/showFlowing/:id", async (req, res) => {
+      const id = req.params.id;
+      const query = { userId: id };
+      const result = await favUserCollection.findOne(query);
+      return res.send(result);
+    });
+
+    app.get("/showFlowers/:id", async (req, res) => {
+      const id = req.params.id;
+      const query = { "favUser.favId": id };
+      const result = await favUserCollection.find(query).toArray();
+      return res.send(result);
+    });
+
+    app.get("/disableFav/:id/:favID", async (req, res) => {
+      const id = req.params.id;
+      const favID = req.params.favID;
+      const query = { userId: id, "favUser.favId": favID };
+      const result = await favUserCollection.findOne(query);
+      return res.send(result);
+    });
+
+    app.post("/setFav/:id", async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) };
+      const projection = {
+        _id: 0,
+        name: 1,
+        profileImage: 1,
+      };
+
+      const user = await usersCollection.findOne(query, {
+        projection: projection,
+      });
+
+      const setFav = req.body;
+      const favt = {
+        userId: id,
+        userName: user.name,
+        userImg: user.profileImage,
+        favUser: [setFav],
+      };
+      const result = await favUserCollection.insertOne(favt);
+      return res.send(result);
+    });
+
+    app.put("/makeFav/:id", async (req, res) => {
+      const id = req.params.id;
+      const setFav = req.body;
+      const query = { userId: id };
+      const existResult = await favUserCollection.findOne(query);
+      existResult.favUser.push(setFav);
+
+      const filter = { userId: id };
+      const option = { upsert: true };
+      const setCls = {
+        $set: {
+          favUser: existResult.favUser,
+        },
+      };
+
+      const result = await favUserCollection.updateOne(filter, setCls, option);
+      res.send(result);
+    });
+
+    app.put("/makeUnfollow/:id", async (req, res) => {
+      const id = req.params.id;
+      const unfollow = req.body;
+      const filter = { userId: id };
+      const option = { upsert: true };
+      const setCls = {
+        $pull: {
+          favUser: unfollow,
+        },
+      };
+      const result = await favUserCollection.updateOne(filter, setCls, option);
+      res.send(result);
+    });
 
     //if any issue comment this line.
     await client.connect();
