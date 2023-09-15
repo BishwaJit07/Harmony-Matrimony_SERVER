@@ -51,8 +51,9 @@ const verifyJWT = (req, res, next) => {
 
 // mongo db
 
-const uri = `mongodb+srv://${process.env.DB_User}:${process.env.DB_Pass}@cluster0.pmqtpdf.mongodb.net/?retryWrites=true&w=majority`;
+// const uri = `mongodb+srv://${process.env.DB_User}:${process.env.DB_Pass}@cluster0.pmqtpdf.mongodb.net/?retryWrites=true&w=majority`;
 
+const uri = `mongodb+srv://${process.env.DB_User}:${process.env.DB_Pass}@cluster0.ymw1jdy.mongodb.net/?retryWrites=true&w=majority&appName=AtlasApp`;
 // make a .env file and put this there -
 
 // DB_User = SoulMate-Matrimony
@@ -76,7 +77,7 @@ const is_live = false;
 async function run() {
   try {
     function getCollection(collectionName) {
-      return client.db("SoulMate-Matrimony").collection(collectionName);
+      return client.db("SoulMate").collection(collectionName);
     }
 
     const usersCollection = getCollection("users");
