@@ -13,8 +13,6 @@ const router = express.Router();
 const conversationRoute = require("./routes/conversations");
 const messagesRoute = require("./routes/messages");
 
-
-
 mongoose.connect(
   process.env.MONGO_URL,
   { useNewUrlParser: true, useUnifiedTopology: true },
@@ -29,7 +27,6 @@ app.use(express.json());
 
 app.use("/conversations", conversationRoute);
 app.use("/messages", messagesRoute);
-
 
 const verifyJWT = (req, res, next) => {
   const authorization = req.headers.authorization;
@@ -74,7 +71,7 @@ const client = new MongoClient(uri, {
 
 const store_id = process.env.SSLID;
 const store_passwd = process.env.SSLPASS;
-const is_live = false; 
+const is_live = false;
 
 async function run() {
   try {
@@ -108,7 +105,6 @@ async function run() {
     });
 
     // PAYMENT_KEY=sk_test_51Ni8a5GFYl3GiivUgPzTNfNymFHldn7Wbmsgin0vFLUwo1VpXbjHO7DwTod7w77vCEy3HLyj3Mc09MfuN5ereJRZ00AGjsKM6l
-
 
     // stripe payment
 
@@ -247,6 +243,19 @@ async function run() {
       const updateDoc = {
         $set: {
           profile_complete: 100,
+        },
+      };
+      const result = await usersCollection.updateOne(query, updateDoc);
+      res.send(result);
+    });
+
+    app.put("/userCancle/:email", async (req, res) => {
+      const email = req.params.email;
+      console.log(email);
+      const query = { email: email };
+      const updateDoc = {
+        $set: {
+          verify: "blocked",
         },
       };
       const result = await usersCollection.updateOne(query, updateDoc);
@@ -397,7 +406,6 @@ async function run() {
       const result = await teamMemberCollection.find().toArray();
       return res.send(result);
     });
-
 
     app.post("/authority", async (req, res) => {
       const user = req.body;
@@ -644,8 +652,8 @@ async function run() {
         total_amount: order.price,
         currency: "BDT",
         tran_id: train_id,
-        success_url: `http://localhost:5000/payment/success/${train_id}`,
-        fail_url: `http://localhost:5000/payment/fail/${train_id}`,
+        success_url: `https://harmony-matrimony-server.vercel.app/payment/success/${train_id}`,
+        fail_url: `https://harmony-matrimony-server.vercel.app/payment/fail/${train_id}`,
         cancel_url: "http://localhost:3030/cancel", //not Important
         ipn_url: "http://localhost:3030/ipn", //not Important
         shipping_method: "Courier",
