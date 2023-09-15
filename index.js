@@ -239,9 +239,11 @@ async function run() {
       const result = await usersCollection.findOne(query);
       res.send(result);
     });
-    app.patch("/userVerify/:email", async (req, res) => {
-      const email = req.query.email;
-      const query = { email: email };
+
+    app.patch('/userVerify/:email', async(req, res) =>{
+      const email = req.params.email;
+      const query = {email : email };
+
       const updateDoc = {
         $set: {
           profile_complete: 100,
@@ -249,20 +251,23 @@ async function run() {
       };
       const result = await usersCollection.updateOne(query, updateDoc);
       res.send(result);
-    });
 
-    app.put("/userCancle/:email", async (req, res) => {
+    })
+    app.put('/userCancle/:email', async(req, res) =>{
       const email = req.params.email;
       console.log(email);
-      const query = { email: email };
+      const query = {email : email };
       const updateDoc = {
-        $set: {
-          verify: "blocked",
+        $set: { 
+          verify: 'blocked',
+
         },
       };
       const result = await usersCollection.updateOne(query, updateDoc);
       res.send(result);
+
     });
+
 
     //update user data
     app.put("/update1", async (req, res) => {
@@ -428,7 +433,15 @@ async function run() {
       const result = await authorityCollection.find(query).toArray();
       return res.send(result);
     });
-    app.delete("/deleteUser/:id", async (req, res) => {
+
+    app.get('/profileData/:email', async(req, res) =>{
+      const email = req.params.email;
+      const filter = {email: email};
+      const result = await authorityCollection.findOne(filter);
+      return res.send(result)
+    })
+    app.delete('/deleteUser/:id', async(req, res) =>{
+
       const id = req.params.id;
       const filter = { _id: new ObjectId(id) };
       const result = await usersCollection.deleteOne(filter);
@@ -458,10 +471,12 @@ async function run() {
     });
 
     // verify Related apis
-    app.get("/verifyUser", async (req, res) => {
+
+    app.get('/verifyUser', async(req, res) =>{
       const result = await userVerification.find().toArray();
       return res.send(result);
-    });
+    })
+
 
     //Couples related api
 
