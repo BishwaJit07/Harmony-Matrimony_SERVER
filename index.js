@@ -222,7 +222,7 @@ async function run() {
       res.send(result);
     });
     app.patch('/userVerify/:email', async(req, res) =>{
-      const email = req.query.email;
+      const email = req.params.email;
       const query = {email : email };
       const updateDoc = {
         $set: {
@@ -232,12 +232,13 @@ async function run() {
       const result = await usersCollection.updateOne(query, updateDoc);
       res.send(result);
     })
-    app.patch('/userVerifyCancle/:email', async(req, res) =>{
-      const email = req.query.email;
+    app.put('/userCancle/:email', async(req, res) =>{
+      const email = req.params.email;
+      console.log(email);
       const query = {email : email };
       const updateDoc = {
         $set: { 
-          interests: denied,
+          verify: 'blocked',
         },
       };
       const result = await usersCollection.updateOne(query, updateDoc);
@@ -411,6 +412,12 @@ async function run() {
       const result = await authorityCollection.find(query).toArray();
       return res.send(result);
     });
+    app.get('/profileData/:email', async(req, res) =>{
+      const email = req.params.email;
+      const filter = {email: email};
+      const result = await authorityCollection.findOne(filter);
+      return res.send(result)
+    })
     app.delete('/deleteUser/:id', async(req, res) =>{
       const id = req.params.id;
       const filter = {_id: new ObjectId(id)};
