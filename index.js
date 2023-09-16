@@ -95,6 +95,7 @@ async function run() {
     const statusCollection = getCollection("statusPost");
     const meetCollection = getCollection("setMeeting");
     const favUserCollection = getCollection("favUser");
+    const setCoupleCollection = getCollection("setCouple");
 
     // JWt
     app.post("/jwt", (req, res) => {
@@ -238,9 +239,11 @@ async function run() {
       const result = await usersCollection.findOne(query);
       res.send(result);
     });
-    app.patch("/userVerify/:email", async (req, res) => {
-      const email = req.query.email;
-      const query = { email: email };
+
+    app.patch('/userVerify/:email', async(req, res) =>{
+      const email = req.params.email;
+      const query = {email : email };
+
       const updateDoc = {
         $set: {
           profile_complete: 100,
@@ -248,20 +251,23 @@ async function run() {
       };
       const result = await usersCollection.updateOne(query, updateDoc);
       res.send(result);
-    });
 
-    app.put("/userCancle/:email", async (req, res) => {
+    })
+    app.put('/userCancle/:email', async(req, res) =>{
       const email = req.params.email;
       console.log(email);
-      const query = { email: email };
+      const query = {email : email };
       const updateDoc = {
-        $set: {
-          verify: "blocked",
+        $set: { 
+          verify: 'blocked',
+
         },
       };
       const result = await usersCollection.updateOne(query, updateDoc);
       res.send(result);
+
     });
+
 
     //update user data
     app.put("/update1", async (req, res) => {
@@ -428,7 +434,15 @@ async function run() {
       const result = await authorityCollection.find(query).toArray();
       return res.send(result);
     });
-    app.delete("/deleteUser/:id", async (req, res) => {
+
+    app.get('/profileData/:email', async(req, res) =>{
+      const email = req.params.email;
+      const filter = {email: email};
+      const result = await authorityCollection.findOne(filter);
+      return res.send(result)
+    })
+    app.delete('/deleteUser/:id', async(req, res) =>{
+
       const id = req.params.id;
       const filter = { _id: new ObjectId(id) };
       const result = await usersCollection.deleteOne(filter);
@@ -458,10 +472,12 @@ async function run() {
     });
 
     // verify Related apis
-    app.get("/verifyUser", async (req, res) => {
+
+    app.get('/verifyUser', async(req, res) =>{
       const result = await userVerification.find().toArray();
       return res.send(result);
-    });
+    })
+
 
     //Couples related api
 
@@ -621,6 +637,13 @@ async function run() {
       };
       const result = await blogsCollection.updateOne(filter, updateDoc);
       res.send(result);
+    });
+
+    app.get("/profileData/:email", async (req, res) => {
+      const email = req.params.email;
+      const filter = { email: email };
+      const result = await authorityCollection.findOne(filter);
+      return res.send(result);
     });
 
     //user status post
@@ -988,29 +1011,8 @@ async function run() {
     });
 
     async function getInfoData(paramQurey, userInfo) {
-      let projection = {};
-      if (userInfo === "user") {
-        projection = {
-          _id: 1,
-          partner: 1,
-          metDate: 1,
-        };
-      } else {
-        projection = {
-          _id: 1,
-          userId: 1,
-          metDate: 1,
-        };
-      }
-
-      const result = await meetCollection
-        .find(paramQurey, {
-          projection: projection,
-        })
-        .toArray();
-
+      const result = await meetCollection.find(paramQurey).toArray();
       const partnerUserData = [];
-
       const userProjection = {
         _id: 1,
         name: 1,
@@ -1033,6 +1035,7 @@ async function run() {
         if (userData) {
           userData.metId = part._id;
           userData.metDate = part.metDate;
+          userData.setBy = part.setBy;
           partnerUserData.push(userData);
         }
       }
@@ -1056,8 +1059,8 @@ async function run() {
     //new polis & poposal handle
     async function handleStatusUpdate(req, res, status) {
       const id = req.params.id;
-      const userQuery = { userId: id, status };
-      const partnerQuery = { partner: id, status };
+      const userQuery = { userId: id, status: status };
+      const partnerQuery = { partner: id, status: status };
       const userResult = await getInfoData(userQuery, "user");
       const partnerResult = await getInfoData(partnerQuery, "partner");
       const result = userResult.concat(partnerResult);
@@ -1102,12 +1105,86 @@ async function run() {
       }
 
       const result = await meetCollection.updateOne(filter, setCls, option);
-      res.send(result);
+      return result;
     }
 
-    app.put("/deleteMet/:id", handleMetStatus);
-    app.put("/acceptMet/:id", handleMetStatus);
-    app.put("/setProposal/:id", handleMetStatus);
+    app.put("/deleteMet/:id", async (req, res) => {
+      const result = await handleMetStatus(req, res);
+      res.send(result);
+    });
+
+    app.put("/setProposal/:id", async (req, res) => {
+      const result = await handleMetStatus(req, res);
+      res.send(result);
+    });
+
+    async function findUserData(data) {
+      const usersProjection = {
+        _id: 1,
+        name: 1,
+        email: 1,
+        mobile: 1,
+        country: 1,
+      };
+
+      const user = await usersCollection.findOne(
+        { _id: new ObjectId(data.userId) },
+        {
+          projection: usersProjection,
+        }
+      );
+      const partner = await usersCollection.findOne(
+        { _id: new ObjectId(data.partner) },
+        {
+          projection: usersProjection,
+        }
+      );
+
+      let couple = {};
+      couple.partner1 = user;
+      couple.partner2 = partner;
+      couple.issueDate = new Date();
+      couple.status = "pending";
+
+      return await setCoupleCollection.insertOne(couple);
+    }
+
+    async function updateUserStatus(userId) {
+      const filter = { _id: new ObjectId(userId) };
+      const option = { upsert: true };
+      const setCls = {
+        $set: {
+          status: "pending",
+        },
+      };
+
+      return await usersCollection.updateOne(filter, setCls, option);
+    }
+
+    app.put("/acceptMet/:id", async (req, res) => {
+      const id = req.params.id;
+      const result = await handleMetStatus(req, res);
+      if (result.modifiedCount > 0) {
+        const query = { _id: new ObjectId(id) };
+        const projection = {
+          userId: 1,
+          partner: 1,
+          metDate: 1,
+        };
+
+        const metData = await meetCollection.findOne(query, {
+          projection: projection,
+        });
+
+        const coupleResult = await findUserData(metData);
+
+        if (coupleResult.insertedId) {
+          await updateUserStatus(metData.userId);
+          await updateUserStatus(metData.partner);
+        }
+      }
+      res.send(result);
+    });
 
     //make fav
     app.get("/showFlowing/:id", async (req, res) => {
