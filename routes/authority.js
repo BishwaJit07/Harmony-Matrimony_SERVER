@@ -101,7 +101,9 @@ router.get("/profileData/:email", async (req, res) => {
     const result = await authorityCollection.findOne(filter);
     return res.send(result);
   }
+
   catch (err) {res.status(500).json(err)}
+
 });
 
 module.exports = router;

@@ -37,13 +37,14 @@ router.get("/allUserGender/:gender", async (req, res) => {
     return res.send(result);
   } catch (err) {
     res.status(500).json(err);
-  }
+  
 });
 
 
 router.get("/specificUser/:id", async (req, res) => {
   try{
   const id = req.params.id;
+
   const query = { _id: new ObjectId(id) };
   const result = await usersCollection.findOne(query);
   return res.send(result);
@@ -89,6 +90,9 @@ router.patch('/userVerify/:email', async (req, res) => {
 router.put('/userCancle/:email', async (req, res) => {
   try{
     const email = req.params.email;
+
+    console.log(email);
+
     const query = { email: email };
     const updateDoc = {
       $set: {
