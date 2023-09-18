@@ -20,7 +20,8 @@ router.post("/jwt", (req, res) => {
 });
 
 
-router.get("/users/admin/:email", verifyJWT, async (req, res) => {
+router.get("/users/admin/:email" ,verifyJWT,  async (req, res) => {
+
     try {
         const email = req.params.email;
         if (req.decoded.email !== email) {
@@ -28,7 +29,11 @@ router.get("/users/admin/:email", verifyJWT, async (req, res) => {
         }
         const query = { email: email };
         const user = await authorityCollection.findOne(query);
-        const result = { admin: user?.role === "admin", status: user?.state === "approved" };
+
+        const result = {
+            match: user?.role === "admin" && user?.status === "approved" 
+        };
+
         res.send(result);
     }
     catch (err) { res.status(500).json(err) }
@@ -40,12 +45,14 @@ router.get("/users/support/:email", verifyJWT, async (req, res) => {
     const email = req.params.email;
 
     if (req.decoded.email !== email) {
-        res.send({ support: false });
+        res.send({ admin: false });
     }
-
     const query = { email: email };
     const user = await authorityCollection.findOne(query);
-    const result = { admin: user?.role === "support", status: user?.state === "approved" };
+    const result = {
+        match: user?.role === "support" && user?.status === "approved" 
+    };
+
     res.send(result);
    }
    catch (err) { res.status(500).json(err)}

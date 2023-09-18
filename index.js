@@ -35,6 +35,7 @@ app.use("/", serviceRoute);
 app.use("/", blogRoute);
 app.use("/", authorityRoute);
 app.use("/", coupleCollectionRoute);
+
 app.use("/", dashboardCollectionRoute);
 app.use("/", favUserRoute);
 app.use("/", meetRoute);
