@@ -37,7 +37,7 @@ router.get("/allUserGender/:gender", async (req, res) => {
     return res.send(result);
   } catch (err) {
     res.status(500).json(err);
-  
+  }
 });
 
 
