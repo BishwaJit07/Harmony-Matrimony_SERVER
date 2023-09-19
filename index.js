@@ -10,7 +10,7 @@ const userInfoUpdateRoute = require("./routes/userInfoUpdate");
 const serviceRoute = require("./routes/service");
 const blogRoute = require("./routes/blogs");
 const authorityRoute = require("./routes/authority");
-
+const coupleCollectionRoute = require("./routes/coupleCollection");
 const dashboardCollectionRoute = require("./routes/dashboard");
 const favUserRoute = require("./routes/favUser");
 const meetRoute = require("./routes/meet");
@@ -34,7 +34,7 @@ app.use("/", userInfoUpdateRoute);
 app.use("/", serviceRoute);
 app.use("/", blogRoute);
 app.use("/", authorityRoute);
-
+app.use("/", coupleCollectionRoute);
 app.use("/", dashboardCollectionRoute);
 app.use("/", favUserRoute);
 app.use("/", meetRoute);
