@@ -16,8 +16,7 @@ router.get("/allUser", async (req, res) => {
 
 router.get("/specificUser/:id", async (req, res) => {
   try{
-    const id = req.params.id;
-  console.log(id)
+  const id = req.params.id;
   const query = { _id: new ObjectId(id) };
   const result = await usersCollection.findOne(query);
   return res.send(result);
@@ -25,7 +24,7 @@ router.get("/specificUser/:id", async (req, res) => {
   catch (err) {res.status(500).json(err)}
 });
 
-//get user by gender
+
 router.get("/allUserGender/:gender", async (req, res) => {
   try {
     const requestedGender = req.params.gender;
@@ -42,6 +41,16 @@ router.get("/allUserGender/:gender", async (req, res) => {
 });
 
 
+router.get("/specificUser/:id", async (req, res) => {
+  try{
+  const id = req.params.id;
+
+  const query = { _id: new ObjectId(id) };
+  const result = await usersCollection.findOne(query);
+  return res.send(result);
+  }
+  catch (err) {res.status(500).json(err)}
+});
 
 router.post("/allUser", async (req, res) => {
   try{
@@ -81,7 +90,9 @@ router.patch('/userVerify/:email', async (req, res) => {
 router.put('/userCancle/:email', async (req, res) => {
   try{
     const email = req.params.email;
+
     console.log(email);
+
     const query = { email: email };
     const updateDoc = {
       $set: {
