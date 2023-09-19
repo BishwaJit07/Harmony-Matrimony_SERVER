@@ -8,6 +8,9 @@ const bookedServiceCollection = mongoClient.db("SoulMate").collection("bookedSer
 
 // get photography services data
 router.get("/service/photography", async (req, res) => {
+
+    console.log("function is here ")
+
     try {
         const query = { category: "photography" };
         const result = await serviceCollection.find(query).toArray();
@@ -16,6 +19,8 @@ router.get("/service/photography", async (req, res) => {
     catch (error) {
         console.error('Error fetching users using the native driver:', error);
         res.status(500).json({ error: 'Server error' });
+
+        console.log("function is here ")
     }
 });
 
