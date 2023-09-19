@@ -41,6 +41,7 @@ router.get("/users/admin/:email" ,verifyJWT,  async (req, res) => {
 
 // check Support 
 router.get("/users/support/:email", verifyJWT, async (req, res) => {
+    console.log(req.params.email)
    try{
     const email = req.params.email;
 
