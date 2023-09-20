@@ -18,14 +18,26 @@ router.get("/reviews", async (req, res) => {
 });
 
 router.post("/reviews", async (req, res) => {
-    try{
+    try {
         const newreview = req.body;
-    const result = await reviewCollection.insertOne(newstory);
-    return res.send(result);
+        const result = await reviewCollection.insertOne(newstory);
+        return res.send(result);
     }
     catch (error) {
         console.error('Error fetching users using the native driver:', error);
         res.status(500).json({ error: 'Server error' });
+    }
+});
+
+router.get("/reviews/:id", async (req, res) => {
+    try {
+        const id = req.params.id;
+        const query = { _id: new ObjectId(id) };
+        const result = await reviewCollection.findOne(query);
+        res.send(result);
+    }
+    catch (err) {
+        res.status(500).json(err)
     }
 });
 
