@@ -168,4 +168,17 @@ router.post("/order", async (req, res) => {
   });
 });
 
+// get payment history
+router.get("/paymentHistory/:id", async (req, res) => {
+  try {
+    const userId = req.params.id
+    const filter = { userId: userId };
+    const result = await paymentHistoryCollection.find(filter).toArray();
+    res.send(result);
+  } catch (error) {
+    console.error("Error fetching users using the native driver:", error);
+    res.status(500).json({ error: "Server error" });
+  }
+});
+
 module.exports = router;
