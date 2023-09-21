@@ -3,6 +3,9 @@ const express = require("express");
 const { mongoClient } = require("../mongodbConnection");
 const router = express.Router();
 const usersCollection = mongoClient.db("SoulMate").collection("users");
+const proVstCollection = mongoClient.db("SoulMate").collection("profileVisit");
+
+const { findDataInfo, setPerson, disableItem } = require("./favUser");
 
 //user plan system
 
@@ -57,6 +60,38 @@ router.put("/profileVisit", async (req, res) => {
     console.error("Error fetching users using the native driver:", error);
     res.status(500).json({ error: "Server error" });
   }
+});
+
+router.get("/showVstUser/:id", async (req, res) => {
+  try {
+    const id = req.params.id;
+    const query = { userId: id };
+    const result = await proVstCollection.findOne(query);
+    return res.send(result);
+  } catch (err) {
+    res.status(500).json(err);
+  }
+});
+
+router.post("/pstVstUser/:id", async (req, res) => {
+  const favt = await findDataInfo(req);
+  const result = await proVstCollection.insertOne(favt);
+  return res.send(result);
+});
+
+router.put("/addVstUser/:id", async (req, res) => {
+  try {
+    const result = await setPerson(req, proVstCollection);
+    res.send(result);
+  } catch (err) {
+    res.status(500).json(err);
+  }
+});
+
+router.get("/disableAddVstUser/:id/:favID", async (req, res) => {
+  const id = req.params.id;
+  const favID = req.params.favID;
+  await disableItem(id, favID, res, proVstCollection);
 });
 
 module.exports = router;

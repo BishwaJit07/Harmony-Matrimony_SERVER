@@ -6,7 +6,7 @@ const usersCollection = mongoClient.db("SoulMate").collection("users");
 const meetCollection = mongoClient.db("SoulMate").collection("setMeeting");
 const setCoupleCollection = mongoClient.db("SoulMate").collection("setCouple");
 
-//get partnerData
+//set meeting
 async function getInfoData(paramQurey, userInfo) {
   const result = await meetCollection.find(paramQurey).toArray();
   const partnerUserData = [];
@@ -121,7 +121,6 @@ async function updateUserStatus(userId, maritalSts, status) {
   return await usersCollection.updateOne(filter, setCls, option);
 }
 
-//set meeting
 router.get("/userPlanInfo", async (req, res) => {
   try {
     const email = req.query.email;
@@ -259,74 +258,7 @@ router.put("/acceptMet/:id", async (req, res) => {
   }
 });
 
-//set relation
-router.post("/setCouple", async (req, res) => {
-  try {
-    const couple = req.body;
-    const coupleResult = await findUserData(couple);
-
-    if (coupleResult.insertedId) {
-      await updateUserStatus(couple.userId, "Married", "successful");
-      await updateUserStatus(couple.partner, "Married", "successful");
-      res.send(coupleResult);
-    }
-  } catch (err) {
-    res.status(500).json(err);
-  }
-});
-
-router.get("/showPartner/:id", async (req, res) => {
-  try {
-    let projection = {};
-    const id = req.params.id;
-    projection = {
-      _id: 1,
-      partner2: 1,
-      issueDate: 1,
-    };
-    const query = { "partner1._id": new ObjectId(id), status: "successful" };
-    const result = await setCoupleCollection
-      .find(query, {
-        projection: projection,
-      })
-      .toArray();
-
-    if (result.length > 0) {
-      return res.send(result);
-    } else {
-      projection = {
-        _id: 1,
-        partner1: 1,
-        issueDate: 1,
-      };
-      const query = { "partner2._id": new ObjectId(id), status: "successful" };
-      const result = await setCoupleCollection
-        .find(query, {
-          projection: projection,
-        })
-        .toArray();
-      return res.send(result);
-    }
-  } catch (err) {
-    res.status(500).json(err);
-  }
-});
-
-router.delete("/delPartner/:id/:user/:partner", async (req, res) => {
-  try {
-    const id = req.params.id;
-    const user = req.params.user;
-    const partner = req.params.partner;
-
-    await updateUserStatus(user, "Single", "breakup");
-    await updateUserStatus(partner, "Single", "breakup");
-
-    const filter = { _id: new ObjectId(id) };
-    const result = await setCoupleCollection.deleteOne(filter);
-    return res.send(result);
-  } catch (err) {
-    res.status(500).json(err);
-  }
-});
-
-module.exports = router;
+module.exports = {
+  router,
+  updateUserStatus,
+};
