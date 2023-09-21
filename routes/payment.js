@@ -94,8 +94,8 @@ router.post("/order", async (req, res) => {
             total_amount: order.price,
             currency: "BDT",
             tran_id: train_id,
-            success_url: `https://harmony-matrimony-server.vercel.router/payment/success/${train_id}`,
-            fail_url: `https://harmony-matrimony-server.vercel.router/payment/fail/${train_id}`,
+            success_url: `https://soulmate-matrimony.netlify.app/payment/success/${train_id}`,
+            fail_url: `https://soulmate-matrimony.netlify.app/payment/fail/${train_id}`,
             cancel_url: "http://localhost:3030/cancel", //not Important
             ipn_url: "http://localhost:3030/ipn", //not Important
             shipping_method: "Courier",
@@ -167,7 +167,7 @@ router.post("/payment/success/:tranId", async (req, res) => {
             await updateUserPlanSystem(plan.order);
 
             res.redirect(
-                `http://localhost:5173/payment/success/${req.params.tranId}`
+                `https://soulmates-server.vercel.app/payment/success/${req.params.tranId}`
             );
         }
     }
@@ -183,7 +183,7 @@ router.post("/payment/fail/:tranId", async (req, res) => {
     });
     if (result.deletedCount) {
         res.redirect(
-            `http://localhost:5173/payment/fail/${req.params.tranId}`
+            `https://soulmates-server.vercel.app/payment/fail/${req.params.tranId}`
         );
     }
    }
