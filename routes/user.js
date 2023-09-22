@@ -133,4 +133,20 @@ router.get("/userPlan", async (req, res) => {
   catch (err) {res.status(500).json(err)}
 });
 
+router.post('/galleryImg', async(req, res) => {
+  try{
+    const {img, userId} = req.body
+    const result = await usersCollection.updateOne(
+      {_id: new ObjectId(userId)},
+      {
+        $addToSet: {gallery: img}
+      }
+    )
+    res.send(result)
+  }
+  catch (err){ 
+    res.status(500).json(err)
+  }
+})
+
 module.exports = router;
