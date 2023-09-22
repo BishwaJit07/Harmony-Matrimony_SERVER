@@ -15,7 +15,7 @@ const mongoClient = new MongoClient(mongoUri, {
 // Connect to MongoDB using the native driver
 async function connectMongoClient() {
   try {
-    // await mongoClient.connect();
+    await mongoClient.connect();
     console.log("Connected to MongoDB using the native driver");
   } catch (error) {
     console.error(
