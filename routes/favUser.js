@@ -4,7 +4,6 @@ const { mongoClient } = require("../mongodbConnection");
 const router = express.Router();
 const usersCollection = mongoClient.db("SoulMate").collection("users");
 const favUserCollection = mongoClient.db("SoulMate").collection("favUser");
-const relationCollection = mongoClient.db("SoulMate").collection("setRetation");
 
 //make fav
 
@@ -145,50 +144,11 @@ router.put("/makeUnfollow/:id", async (req, res) => {
   await delUpdateCollection(req, res, favUserCollection);
 });
 
-//set relation
-
-router.get("/showRelation/:id", async (req, res) => {
-  try {
-    const id = req.params.id;
-    const query = { userId: id };
-    const result = await relationCollection.findOne(query);
-    return res.send(result);
-  } catch (err) {
-    res.status(500).json(err);
-  }
-});
-
-router.get("/disableRltn/:id/:rtlnID", async (req, res) => {
-  const id = req.params.id;
-  const rtlnID = req.params.rtlnID;
-  await disableItem(id, rtlnID, res, relationCollection);
-});
-
-router.get("/shwGetReqRltn/:id", async (req, res) => {
-  await findReqCollection(req, res, relationCollection);
-});
-
-router.post("/setReqRelation/:id", async (req, res) => {
-  try {
-    const relation = await findDataInfo(req);
-    const result = await relationCollection.insertOne(relation);
-    return res.send(result);
-  } catch (err) {
-    res.status(500).json(err);
-  }
-});
-
-router.put("/takeRltnPsn/:id", async (req, res) => {
-  try {
-    const result = await setPerson(req, relationCollection);
-    res.send(result);
-  } catch (err) {
-    res.status(500).json(err);
-  }
-});
-
-router.put("/delRltn/:id", async (req, res) => {
-  await delUpdateCollection(req, res, relationCollection);
-});
-
-module.exports = router;
+module.exports = {
+  router,
+  findDataInfo,
+  setPerson,
+  disableItem,
+  findReqCollection,
+  delUpdateCollection,
+};
