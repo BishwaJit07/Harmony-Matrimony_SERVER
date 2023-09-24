@@ -115,7 +115,7 @@ router.post("/order", async (req, res) => {
     ship_postcode: order.post,
     ship_country: "Bangladesh",
   };
-  console.log(data);
+ 
   const sslcz = new SSLCommerzPayment(store_id, store_passwd, is_live);
   sslcz.init(data).then((apiResponse) => {
     // Redirect the user to payment gateway
@@ -128,12 +128,9 @@ router.post("/order", async (req, res) => {
       transaction: train_id,
     };
     const result = orderCollection.insertOne(finalOrder);
-
-    console.log("Redirecting to: ", GatewayPageURL);
   });
 
   router.post("/payment/success/:tranId", async (req, res) => {
-    console.log(req.params.tranId);
     const result = await orderCollection.updateOne(
       { transaction: req.params.tranId },
       {

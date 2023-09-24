@@ -7,6 +7,7 @@ const contactCollection = mongoClient.db("SoulMate").collection("contacts");
 
 //  team Members
 router.get("/team", async (req, res) => {
+    
     try {
         const result = await teamMemberCollection.find().toArray();
         return res.send(result);
@@ -21,6 +22,7 @@ router.get("/team", async (req, res) => {
 // verify Related apis
 
 router.get('/verifyUser', async (req, res) => {
+    
     try {
         const result = await userVerification.find().toArray();
         return res.send(result);
