@@ -18,6 +18,7 @@ router.get("/reviews", async (req, res) => {
 });
 
 router.post("/reviews", async (req, res) => {
+
     try {
         const newreview = req.body;
         const result = await reviewCollection.insertOne(newreview);
@@ -49,7 +50,6 @@ router.post("/reviews", async (req, res) => {
 router.get("/reviews/:id", async (req, res) => {
     try {
       const id = req.params.id;
-  console.log(id);
       const query = { _id: new ObjectId(id) };
       const result = await reviewCollection.findOne(query);
       res.send(result);

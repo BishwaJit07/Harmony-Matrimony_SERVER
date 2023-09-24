@@ -19,7 +19,7 @@ router.get("/blogs", async (req, res) => {
 router.post("/blogs", async (req, res) => {
   try {
     const newBlogs = req.body;
-    console.log(newBlogs);
+  
     const result = await blogsCollection.insertOne(newBlogs);
     return res.send(result);
   }

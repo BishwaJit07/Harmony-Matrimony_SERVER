@@ -7,14 +7,28 @@ const usersCollection = mongoClient.db("SoulMate").collection("users");
 
 //get all user
 router.get("/allUser", async (req, res) => {
-  try{
-    const result = await usersCollection.find().toArray();
+
+  try {
+    const projection = {
+      name: 1,
+      email: 1,
+      profile_complete: 1,
+      profileVisit: 1,
+      age: 1,
+      state: 1,
+      weight: 1,
+      jobSector: 1,
+    };
+    const result = await usersCollection.find({}, {projection: projection }).toArray();    
     return res.send(result);
+  } catch (err) {
+    res.status(500).json(err);
   }
-  catch (err) {res.status(500).json(err)}
 });
 
+
 router.get("/specificUser/:id", async (req, res) => {
+  
   try{
   const id = req.params.id;
   const query = { _id: new ObjectId(id) };
@@ -26,13 +40,30 @@ router.get("/specificUser/:id", async (req, res) => {
 
 
 router.get("/allUserGender/:gender", async (req, res) => {
+
   try {
     const requestedGender = req.params.gender;
     const oppositeGender = requestedGender === 'Male' ? 'Female' : 'Male';
     // Use $in operator to query for both genders
     const query = { gender: { $in: [oppositeGender] } };
-    
-    const result = await usersCollection.find(query).toArray();
+     const projection = {
+      name: 1,
+      email: 1,
+      profile_complete: 1,
+      profileVisit: 1,
+      age: 1,
+      state: 1,
+      weight: 1,
+      jobSector: 1,
+      country: 1,
+      profileImage: 1,
+      height: 1,
+      work: 1,
+      marital_status: 1,
+      religion: 1,
+      aboutMe: 1,
+    };
+    const result = await usersCollection.find(query,{projection: projection }).toArray();
     
     return res.send(result);
   } catch (err) {
@@ -42,6 +73,7 @@ router.get("/allUserGender/:gender", async (req, res) => {
 
 
 router.get("/specificUser/:id", async (req, res) => {
+
   try{
   const id = req.params.id;
 
@@ -90,9 +122,6 @@ router.patch('/userVerify/:email', async (req, res) => {
 router.put('/userCancle/:email', async (req, res) => {
   try{
     const email = req.params.email;
-
-    console.log(email);
-
     const query = { email: email };
     const updateDoc = {
       $set: {

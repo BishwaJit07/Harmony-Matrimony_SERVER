@@ -32,6 +32,7 @@ router.get("/:userId", async (req, res) => {
 
 // Route to find or create a conversation
 router.get("/find/:firstUserId/:secondUserId", async (req, res) => {
+
     try {
       // Try to find an existing conversation with the specified members
       const conversation = await Conversation.findOne({
