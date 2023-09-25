@@ -31,20 +31,7 @@ router.post("/reviews", async (req, res) => {
     }
 });
 
-// router.get("/reviews/:id", async (req, res) => {
-//     try {
-//         const id = req.params.id;
-        
-//         const query = { _id: new ObjectId(id) };
-//         const result = await reviewCollection.findOne(query);
-//         console.log(result);
-//         res.send(result);
-       
-//     }
-//     catch (err) {
-//         res.status(500).json(err)
-//     }
-// });
+
 
 
 router.get("/reviews/:id", async (req, res) => {

@@ -17,7 +17,7 @@ const { updateUserStatus } = require("./meet");
 //set relation
 
 router.get("/showRelation/:id", async (req, res) => {
-  console.log("relation")
+
   try {
     const id = req.params.id;
     const query = { userId: id };
@@ -29,14 +29,13 @@ router.get("/showRelation/:id", async (req, res) => {
 });
 
 router.get("/disableRltn/:id/:rtlnID", async (req, res) => {
-  console.log("relation")
+
   const id = req.params.id;
   const rtlnID = req.params.rtlnID;
   await disableItem(id, rtlnID, res, relationCollection);
 });
 
 router.get("/shwGetReqRltn/:id", async (req, res) => {
-  console.log("relation")
   await findReqCollection(req, res, relationCollection);
 });
 
