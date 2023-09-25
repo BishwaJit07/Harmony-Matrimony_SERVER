@@ -21,9 +21,21 @@ const planRoute = require("./routes/plan");
 const reviewRoute = require("./routes/review");
 const userRoute = require("./routes/user");
 const userVerificationRoute = require("./routes/userVerification");
-const { connectMongoClient, mongoClient } = require("./mongodbConnection");
+const { mongoClient } = require("./mongodbConnection"); // Correct import here
 const mongoose = require("./mongooseConnection");
-connectMongoClient();
+
+// Connect to MongoDB using the native driver
+mongoClient.connect()
+  .then(() => {
+    console.log('Connected to MongoDB using native driver');
+    // Start your Express app here since the connection is established
+    app.listen(port, () => {
+      console.log(`SoulMate listening on port ${port}`);
+    });
+  })
+  .catch((error) => {
+    console.error('Error connecting to MongoDB using native driver:', error);
+  });
 
 // middleware
 app.use(cors());
@@ -46,39 +58,6 @@ app.use("/", reviewRoute);
 app.use("/", userRoute);
 app.use("/", userVerificationRoute);
 
-const uri = `mongodb+srv://${process.env.DB_User}:${process.env.DB_Pass}@cluster0.ymw1jdy.mongodb.net/?retryWrites=true&w=majority&appName=AtlasApp`;
-
-// DB_User = SoulMate-Matrimony
-// DB_Pass = LV2hgni1aq9w6d5H
-// ACCESS_TOKEN_SECRET = 85cb704d0594706c59a8ce4c369af0c8dc6740b0053052e47e20b33775fc78b2d6583a29f44bae285e03bf2e0a7fa81db861441961df8eb5cc5d0fd46028bb88
-// SSLID=soulm64e6111916384
-// SSLPASS=soulm64e6111916384@ssl
-// Create a MongoClient with a MongoClientOptions object to set the Stable API version
-
-// async function run() {
-//   try {
-//     const usersCollection = mongoClient.db("SoulMate").collection("users");
-//     //if any issue comment this line.
-//     await mongoClient.connect();
-//     // Send a ping to confirm a successful connection
-//     await mongoClient.connect();
-//     await mongoClient.db("admin").command({ ping: 1 });
-//     console.log(
-//       "Pinged your deployment. You successfully connected to MongoDB!"
-//     );
-//   } catch (error) {
-//     console.error("MongoDB connection error:", error);
-//   } finally {
-
-//   }
-// }
-// run().catch(console.dir);
-
-//server get point
 app.get("/", (req, res) => {
   res.send("Soulmate matrimony running");
-});
-
-app.listen(port, () => {
-  console.log(`SoulMate listening on port ${port}`);
 });

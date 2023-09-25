@@ -21,7 +21,6 @@ router.post("/jwt", (req, res) => {
 
 
 router.get("/users/admin/:email" ,verifyJWT,  async (req, res) => {
-
     try {
         const email = req.params.email;
         if (req.decoded.email !== email) {
@@ -41,7 +40,7 @@ router.get("/users/admin/:email" ,verifyJWT,  async (req, res) => {
 
 // check Support 
 router.get("/users/support/:email", verifyJWT, async (req, res) => {
-    console.log(req.params.email)
+
    try{
     const email = req.params.email;
 
@@ -60,6 +59,7 @@ router.get("/users/support/:email", verifyJWT, async (req, res) => {
 });
 
 router.get("/userInfo", verifyJWT, async (req, res) => {
+
     try{
         const email = req.query.email;
     if (!email) {

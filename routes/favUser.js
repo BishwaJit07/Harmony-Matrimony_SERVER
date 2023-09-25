@@ -101,6 +101,7 @@ async function findReqCollection(req, res, collectionName) {
 }
 
 router.get("/showFlowing/:id", async (req, res) => {
+ 
   try {
     const id = req.params.id;
     const query = { userId: id };
