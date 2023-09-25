@@ -4,6 +4,7 @@ const { mongoClient } = require("../mongodbConnection");
 const router = express.Router();
 const setCoupleCollection = mongoClient.db("SoulMate").collection("setCouple");
 const relationCollection = mongoClient.db("SoulMate").collection("setRetation");
+const usersCollection = mongoClient.db("SoulMate").collection("users");
 const {
   findDataInfo,
   setPerson,
@@ -14,10 +15,39 @@ const {
 
 const { updateUserStatus } = require("./meet");
 
-//set relation
+async function findUserData(data) {
+  const usersProjection = {
+    _id: 1,
+    name: 1,
+    email: 1,
+    profileImage: 1,
+  };
+
+  const user = await usersCollection.findOne(
+    { _id: new ObjectId(data.userId) },
+    {
+      projection: usersProjection,
+    }
+  );
+  const partner = await usersCollection.findOne(
+    { _id: new ObjectId(data.partner) },
+    {
+      projection: usersProjection,
+    }
+  );
+
+  let couple = {};
+  couple.partner1 = user;
+  couple.partner2 = partner;
+  couple.issueDate = new Date();
+  couple.status = "successful";
+
+  return await setCoupleCollection.insertOne(couple);
+}
+
+
 
 router.get("/showRelation/:id", async (req, res) => {
-  console.log("relation")
   try {
     const id = req.params.id;
     const query = { userId: id };
@@ -29,14 +59,12 @@ router.get("/showRelation/:id", async (req, res) => {
 });
 
 router.get("/disableRltn/:id/:rtlnID", async (req, res) => {
-  console.log("relation")
   const id = req.params.id;
   const rtlnID = req.params.rtlnID;
   await disableItem(id, rtlnID, res, relationCollection);
 });
 
 router.get("/shwGetReqRltn/:id", async (req, res) => {
-  console.log("relation")
   await findReqCollection(req, res, relationCollection);
 });
 
@@ -64,10 +92,10 @@ router.put("/delRltn/:id", async (req, res) => {
 });
 
 router.post("/setCouple", async (req, res) => {
+  console.log(req.body)
   try {
     const couple = req.body;
     const coupleResult = await findUserData(couple);
-
     if (coupleResult.insertedId) {
       await updateUserStatus(couple.userId, "Married", "successful");
       await updateUserStatus(couple.partner, "Married", "successful");
@@ -79,7 +107,6 @@ router.post("/setCouple", async (req, res) => {
 });
 
 router.get("/showPartner/:id", async (req, res) => {
-  console.log("relation")
   try {
     let projection = {};
     const id = req.params.id;
