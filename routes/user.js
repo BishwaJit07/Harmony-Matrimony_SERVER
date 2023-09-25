@@ -50,8 +50,10 @@ router.get("/allUserGender/:gender", async (req, res) => {
   try {
     const requestedGender = req.params.gender;
     const oppositeGender = requestedGender === 'Male' ? 'Female' : 'Male';
-    // Use $in operator to query for both genders
-    const query = { gender: { $in: [oppositeGender] } };
+    const query = { 
+      gender: { $in: [oppositeGender] },
+      status: { $ne: "successful" } 
+    };
      const projection = {
       name: 1,
       email: 1,
@@ -69,13 +71,43 @@ router.get("/allUserGender/:gender", async (req, res) => {
       religion: 1,
       aboutMe: 1,
     };
-    const result = await usersCollection.find(query,{projection: projection }).toArray();
+    const result = await usersCollection.find(query, { projection: projection }).toArray();
     
     return res.send(result);
   } catch (err) {
     res.status(500).json(err);
   }
 });
+
+
+router.get("/allUserImp/:gender", async (req, res) => {
+
+  try {
+    const requestedGender = req.params.gender;
+    const oppositeGender = requestedGender === 'Male' ? 'Female' : 'Male';
+    const query = { 
+      gender: { $in: [oppositeGender] },
+    };
+     const projection = {
+      name: 1,
+      email: 1,
+      profile_complete: 1,
+      profileImage: 1,
+    };
+    const result = await usersCollection.find(query, { projection: projection }).toArray();
+    
+    return res.send(result);
+  } catch (err) {
+    res.status(500).json(err);
+  }
+});
+
+
+
+
+
+
+
 
 
 router.get("/specificUser/:id", async (req, res) => {
