@@ -122,7 +122,6 @@ async function updateUserStatus(userId, maritalSts, status) {
 }
 
 router.get("/userPlanInfo", async (req, res) => {
-
   try {
     const email = req.query.email;
     if (!email) {
@@ -159,8 +158,6 @@ router.post("/setMeeting", async (req, res) => {
 });
 
 router.get("/sendReqPending/:id", async (req, res) => {
-
-
   try {
     const id = req.params.id;
     const query = { userId: id, status: "pending" };
