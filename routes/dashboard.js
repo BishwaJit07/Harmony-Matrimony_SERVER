@@ -13,6 +13,7 @@ const paymentHistoryCollection = mongoClient.db("SoulMate").collection("paymentH
 // admin Dashboard
 
 router.get("/adminStats", async (req, res) => {
+  
     try{
         const user = await usersCollection.estimatedDocumentCount();
         const coupleDate = await coupleCollection.estimatedDocumentCount();
@@ -47,6 +48,7 @@ router.get("/adminStats", async (req, res) => {
     }
 });
 router.get("/monthStats", async (req, res) => {
+   
    try{
     const currentDate = new Date();
     const firstDayOfMonth = new Date(
@@ -110,6 +112,7 @@ router.get("/monthStats", async (req, res) => {
 
 //support dashboard
 router.get("/userStats/:email", async (req, res) => {
+
     try{
         const email = req.params.email;
         const users = await usersCollection.estimatedDocumentCount();

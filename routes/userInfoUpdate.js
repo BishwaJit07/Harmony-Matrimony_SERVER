@@ -3,6 +3,7 @@ const { mongoClient } = require('../mongodbConnection');
 const { ObjectId } = require('mongodb');
 const router = express.Router();
 const usersCollection = mongoClient.db("SoulMate").collection("users");
+const userVerification = mongoClient.db("SoulMate").collection("userVerification");
 
 // MongoDB Route
 router.get('/mongodb-users', async (req, res) => {
@@ -143,10 +144,12 @@ router.put("/update5", async (req, res) => {
 });
 
 router.put("/update7", async (req, res) => {
+    console.log("come here")
     try {
         const id = req.body.id;
         const query = { _id: new ObjectId(id) };
         const updateInfo = req.body;
+        console.log(updateInfo)
         const updateDoc1 = {
             $set: {
                 profile_complete: updateInfo.profile_complete,
