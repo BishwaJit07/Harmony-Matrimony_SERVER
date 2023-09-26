@@ -158,6 +158,8 @@ router.post("/setMeeting", async (req, res) => {
 });
 
 router.get("/sendReqPending/:id", async (req, res) => {
+  console.log("meet")
+
   try {
     const id = req.params.id;
     const query = { userId: id, status: "pending" };
